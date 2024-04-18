@@ -1,10 +1,12 @@
 package cat.udl.eps.softarch.demo.controller;
+import cat.udl.eps.softarch.demo.config.BasicUserDetailsImpl;
 import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.domain.Supplier;
 import cat.udl.eps.softarch.demo.domain.User;
 import cat.udl.eps.softarch.demo.exception.NotAuthorizedException;
 import cat.udl.eps.softarch.demo.exception.NotFoundException;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
+import cat.udl.eps.softarch.demo.repository.SupplierRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -23,8 +25,11 @@ import java.util.Optional;
 public class MappingController {
     private final MappingRepository mappingRepository;
 
-    public MappingController(MappingRepository mappingRepository) {
+    private SupplierRepository supplierRepository;
+
+    public MappingController(MappingRepository mappingRepository, SupplierRepository supplierRepository) {
         this.mappingRepository = mappingRepository;
+        this.supplierRepository = supplierRepository;
     }
 
     @RequestMapping(value = "/mappings/{id}", method = RequestMethod.GET)
@@ -36,7 +41,8 @@ public class MappingController {
             throw new NotAuthorizedException();
         }
 
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
+        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
         Optional<Mapping> mapping = mappingRepository.findById(id);
 
         if (mapping.isEmpty()) {
@@ -49,7 +55,7 @@ public class MappingController {
             throw new NotFoundException();
         }
 
-        if (m.getProvidedBy().getId().equals(user.getId())) {
+        if (m.getProvidedBy().getId().equals(supplier.getId())) {
             return resourceAssembler.toFullResource(m);
         } else {
             throw new NotAuthorizedException();
@@ -60,13 +66,15 @@ public class MappingController {
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody PersistentEntityResource createMapping(PersistentEntityResourceAssembler resourceAssembler,
                                                                 @RequestBody Mapping mapping) throws MethodArgumentNotValidException {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (authentication instanceof AnonymousAuthenticationToken) {
             throw new NotAuthorizedException();
         }
 
-        Supplier supplier = (Supplier) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
+
+        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
         mapping.setProvidedBy(supplier);
 
