@@ -1,9 +1,15 @@
 package cat.udl.eps.softarch.demo.controller;
 
+import cat.udl.eps.softarch.demo.config.AuthenticationConfig;
+import cat.udl.eps.softarch.demo.config.BasicUserDetailsImpl;
 import cat.udl.eps.softarch.demo.domain.Supplier;
+import cat.udl.eps.softarch.demo.dto.JwtResponse;
+import cat.udl.eps.softarch.demo.dto.SignInRequest;
+import cat.udl.eps.softarch.demo.dto.SignUpRequest;
 import cat.udl.eps.softarch.demo.repository.SupplierRepository;
 import cat.udl.eps.softarch.demo.utils.JwtUtil;
 import org.springframework.data.rest.webmvc.PersistentEntityResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,13 +19,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class LoginController {
-    private final SupplierRepository supplierRepository;
+    private SupplierRepository supplierRepository;
     private PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
     private JwtUtil jwtUtil;
 
 
@@ -31,32 +39,42 @@ public class LoginController {
         this.jwtUtil = jwtUtil;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Supplier supplier) {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        Optional<Supplier> supplierExist = supplierRepository.findById(supplier.getUsername());
+    @PostMapping("/signin")
+    public ResponseEntity<?> login(@RequestBody SignInRequest signInRequest) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                signInRequest.getUsername(), signInRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        if (supplierExist.isPresent() && passwordEncoder.matches(supplier.getPassword(), supplierExist.get().getPassword())) {
-            Authentication authentication = authenticationManager.authenticate(new
-                    UsernamePasswordAuthenticationToken(supplier.getUsername(), supplier.getPassword()));
+        String jwt = jwtUtil.generateJwtToken(authentication);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        BasicUserDetailsImpl userDetails = (BasicUserDetailsImpl) authentication.getPrincipal();
 
-//            Cookie cookie = new Cookie("username", supplier.getUsername());
-//            cookie.setHttpOnly(true);
-//            cookie.setPath("/");
-//            response.addCookie(cookie);
-
-            //System.out.println("login" + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-            return ResponseEntity.ok().body("Login successful");
-        } else {
-            return ResponseEntity.badRequest().body("Login failed");
-        }
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+        JwtResponse res = new JwtResponse();
+        res.setToken(jwt);
+        res.setId(userDetails.getId());
+        res.setUsername(userDetails.getUsername());
+        res.setRoles(roles);
+        return ResponseEntity.ok(res);
     }
 
-    @RequestMapping("/userLoggedIn")
-    public Object userLoggedIn() {
-        //System.out.println("userLoggedIn" + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody SignUpRequest signUpRequest) {
+        if (supplierRepository.existsById(signUpRequest.getUsername())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("username is already taken");
+        }
+        if (supplierRepository.existsByEmail(signUpRequest.getEmail())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("email is already taken");
+        }
+        String hashedPassword = passwordEncoder.encode(signUpRequest.getPassword());
+
+        Supplier supplier = new Supplier();
+        supplier.setUsername(signUpRequest.getUsername());
+        supplier.setEmail(signUpRequest.getEmail());
+        supplier.setPassword(hashedPassword);
+        supplierRepository.save(supplier);
+        return ResponseEntity.ok("Supplier registered success");
     }
 }
