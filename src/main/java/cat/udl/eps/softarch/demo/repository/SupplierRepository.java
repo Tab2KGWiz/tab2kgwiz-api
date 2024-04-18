@@ -12,4 +12,5 @@ import java.util.List;
 public interface SupplierRepository extends PagingAndSortingRepository<Supplier, String>, CrudRepository<Supplier, String> {
 
     List<Supplier> findByUsernameContaining(@Param("text") String text);
+    Boolean existsByEmail(String email);
 }
