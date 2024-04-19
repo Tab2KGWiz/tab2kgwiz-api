@@ -1,5 +1,6 @@
 package cat.udl.eps.softarch.demo.controller;
 
+import cat.udl.eps.softarch.demo.config.BasicUserDetailsImpl;
 import cat.udl.eps.softarch.demo.domain.Column;
 import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.domain.Supplier;
@@ -17,10 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -62,6 +62,32 @@ public class ColumnController {
         } else {
             throw new NotAuthorizedException();
         }
+    }
+
+    @RequestMapping(value = "/columns", method = RequestMethod.POST)
+    public @ResponseBody PersistentEntityResource createColumn(PersistentEntityResourceAssembler resourceAssembler,
+                                                               @RequestBody Column column) throws MethodArgumentNotValidException {
+        System.out.println("!!!" + column.getTitle());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            throw new NotAuthorizedException();
+        }
+
+        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
+
+        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
+
+        Optional<Mapping> mappingBelongs = mappingRepository.findByProvidedBy(supplier);
+
+        column.setColumnBelongsTo(mappingBelongs.orElseThrow(NotFoundException::new));
+
+        try {
+            column = columnRepository.save(column);
+        } catch (Exception e) {
+            throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(column, "column"));
+        }
+
+        return resourceAssembler.toFullResource(column);
     }
 
     @RequestMapping(value = "/columns/{id}", method = RequestMethod.DELETE)

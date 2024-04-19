@@ -48,6 +48,9 @@ public class WebSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/mappings").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.DELETE, "/mappings/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.PATCH, "/mappings/*").hasRole("SUPPLIER")
+                .requestMatchers(HttpMethod.POST, "/columns").hasRole("SUPPLIER")
+                .requestMatchers(HttpMethod.DELETE, "/columns/*").hasRole("SUPPLIER")
+                .requestMatchers(HttpMethod.PATCH, "/columns/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.POST, "/**/*").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/**/*").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/**/*").authenticated()
@@ -57,8 +60,8 @@ public class WebSecurityConfig {
             //.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
             .exceptionHandling().authenticationEntryPoint(authEntryPointJwt).and()
             .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .cors((cors) -> cors.configurationSource(corsConfigurationSource()))
-            .httpBasic((httpBasic) -> httpBasic.realmName("tab2kgwiz"));
+            .cors((cors) -> cors.configurationSource(corsConfigurationSource()));
+            //.httpBasic((httpBasic) -> httpBasic.realmName("tab2kgwiz"));
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
