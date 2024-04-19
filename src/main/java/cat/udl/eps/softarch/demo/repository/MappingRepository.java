@@ -2,6 +2,7 @@ package cat.udl.eps.softarch.demo.repository;
 
 import cat.udl.eps.softarch.demo.domain.CustomMapping;
 import cat.udl.eps.softarch.demo.domain.Mapping;
+import cat.udl.eps.softarch.demo.domain.Supplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,4 +26,7 @@ public interface MappingRepository extends PagingAndSortingRepository<Mapping, L
     Page<Mapping> findAll(Pageable pageable);
 
     Optional<Mapping> findById(Long id);
+
+    // In the case that we have unique mapping for each supplier
+    Optional<Mapping> findByProvidedBy(Supplier providedBy);
 }

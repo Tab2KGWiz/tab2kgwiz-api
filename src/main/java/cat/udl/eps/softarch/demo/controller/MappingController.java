@@ -105,4 +105,25 @@ public class MappingController {
         mappingRepository.delete(mapping.get());
         return ResponseEntity.ok("Mapping deleted successfully.");
     }
+
+
+    @RequestMapping(value = "/mappings/{id}", method = RequestMethod.PATCH)
+    public ResponseEntity<String> updateMapping(@RequestBody Mapping mapping) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentSupplierUsername = authentication.getName();
+
+        assert mapping.getId() != null;
+        Optional<Mapping> mappingOptional = mappingRepository.findById(mapping.getId());
+
+        if (mappingOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
+        }
+
+        if (!mappingOptional.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to update this mapping.");
+        }
+
+        mappingRepository.save(mapping);
+        return ResponseEntity.ok("Mapping updated successfully.");
+    }
 }

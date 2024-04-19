@@ -26,7 +26,7 @@ public class Mapping extends UriEntity<Long> {
     @Length(min = 1, max = 100)
     private String fileName;
 
-    @Column(length = fileSize)
+    @Column(length = fileSize, columnDefinition = "TEXT")
     @Size(max = fileSize)
     private String fileContent;
 
