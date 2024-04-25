@@ -77,6 +77,7 @@ public class MappingController {
         Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
         mapping.setProvidedBy(supplier);
+        mapping.setPrefixesURIS("http://www.example.com/,http://myontology.com/,http://schema.org/");
 
         try {
             mapping = mappingRepository.save(mapping);

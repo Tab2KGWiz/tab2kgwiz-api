@@ -67,7 +67,6 @@ public class ColumnController {
     @RequestMapping(value = "/columns", method = RequestMethod.POST)
     public @ResponseBody PersistentEntityResource createColumn(PersistentEntityResourceAssembler resourceAssembler,
                                                                @RequestBody Column column) throws MethodArgumentNotValidException {
-        System.out.println("!!!" + column.getTitle());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
             throw new NotAuthorizedException();
@@ -80,6 +79,8 @@ public class ColumnController {
         Optional<Mapping> mappingBelongs = mappingRepository.findByProvidedBy(supplier);
 
         column.setColumnBelongsTo(mappingBelongs.orElseThrow(NotFoundException::new));
+
+        column.setOntologyURI("http://www.example.com/");
 
         try {
             column = columnRepository.save(column);
@@ -113,4 +114,6 @@ public class ColumnController {
             throw new NotAuthorizedException();
         }
     }
+
+
 }
