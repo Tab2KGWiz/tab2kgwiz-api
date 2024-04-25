@@ -7,12 +7,14 @@ import cat.udl.eps.softarch.demo.repository.MappingRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Component
 public class YamlGenerator {
 
    public void generateYaml(MappingRepository mappingRepository, ColumnRepository columnRepository, String mappingName) throws IOException {
