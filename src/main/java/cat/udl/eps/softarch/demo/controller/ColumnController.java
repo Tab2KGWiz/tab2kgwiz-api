@@ -80,7 +80,7 @@ public class ColumnController {
 
         column.setColumnBelongsTo(mappingBelongs.orElseThrow(NotFoundException::new));
 
-        column.setOntologyURI("http://www.example.com/");
+        column.setOntologyURI("http://dbpedia.org/ontology/");
 
         try {
             column = columnRepository.save(column);
