@@ -4,6 +4,7 @@ import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.domain.YamlMapping;
 import cat.udl.eps.softarch.demo.repository.ColumnRepository;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
+import cat.udl.eps.softarch.demo.service.PrefixCCMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -19,6 +20,8 @@ public class YamlGenerator {
 
    public void generateYaml(MappingRepository mappingRepository, ColumnRepository columnRepository, String mappingName) throws IOException {
 
+       PrefixCCMap prefixCCMap = new PrefixCCMap();
+
        Mapping mapping = mappingRepository.findByTitle(mappingName).get(0);
 
        YamlMapping.Mappings yamlMappingsMap = new YamlMapping.Mappings();
@@ -31,8 +34,8 @@ public class YamlGenerator {
        AtomicInteger count = new AtomicInteger(1);
 
        prefixList.forEach(prefix -> {
-           prefixes.put(prefix, "pre" + count);
-           prefixes4Factory.put("pre" + count, prefix);
+           prefixes.put(prefix, prefixCCMap.prefixCCReverseLookup(prefix));
+           prefixes4Factory.put(prefixCCMap.prefixCCReverseLookup(prefix), prefix);
            count.getAndIncrement();
        });
 
