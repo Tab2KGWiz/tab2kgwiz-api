@@ -2,7 +2,6 @@ package cat.udl.eps.softarch.demo.controller;
 import cat.udl.eps.softarch.demo.config.BasicUserDetailsImpl;
 import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.domain.Supplier;
-import cat.udl.eps.softarch.demo.domain.User;
 import cat.udl.eps.softarch.demo.exception.NotAuthorizedException;
 import cat.udl.eps.softarch.demo.exception.NotFoundException;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
@@ -19,7 +18,11 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.FileWriter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import com.opencsv.CSVWriter;
 
 @RepositoryRestController
 public class MappingController {
@@ -81,6 +84,16 @@ public class MappingController {
 
         try {
             mapping = mappingRepository.save(mapping);
+
+            List<String[]> entries = Arrays.stream(mapping.getFileContent().split("\n")).map(line ->
+                    line.split(",")).toList();
+
+            try (CSVWriter writer = new CSVWriter(new FileWriter("src/main/resources/mappings.csv"), ',',
+                    CSVWriter.NO_QUOTE_CHARACTER)) {
+                for (String[] entry : entries) {
+                    writer.writeNext(entry);
+                }
+            }
         } catch (Exception e) {
             throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(mapping, "mapping"));
         }

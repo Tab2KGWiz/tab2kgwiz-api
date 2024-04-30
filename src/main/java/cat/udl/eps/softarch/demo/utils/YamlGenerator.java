@@ -40,7 +40,8 @@ public class YamlGenerator {
        });
 
        YamlMapping.Sources sources = new YamlMapping.Sources();
-       sources.setAccess(mapping.getFileName());
+       //sources.setAccess(mapping.getFileName());
+       sources.setAccess("mappings.csv");
        sources.setReferenceFormulation(mapping.getFileFormat());
        yamlMappingsMap.setSources(List.of(sources));
 
@@ -81,5 +82,6 @@ public class YamlGenerator {
 
        ObjectMapper mapper = new ObjectMapper(yamlFactory);
        mapper.writeValue(new File("src/main/resources/mappings.yarrrml.yml"), yamlMapping);
+
    }
 }
