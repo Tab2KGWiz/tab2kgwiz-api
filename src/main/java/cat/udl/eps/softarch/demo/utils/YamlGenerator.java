@@ -22,6 +22,12 @@ public class YamlGenerator {
 
        PrefixCCMap prefixCCMap = new PrefixCCMap();
 
+       System.out.println("!!!!" + mappingRepository.findByTitle(mappingName));
+
+       if (mappingRepository.findByTitle(mappingName).isEmpty()) {
+           throw new IOException("Mapping not found");
+       }
+
        Mapping mapping = mappingRepository.findByTitle(mappingName).get(0);
 
        YamlMapping.Mappings yamlMappingsMap = new YamlMapping.Mappings();
@@ -29,6 +35,7 @@ public class YamlGenerator {
        Map<String, String> prefixes = new HashMap<>();
 
        Map<String, String> prefixes4Factory = new HashMap<>();
+
 
        ArrayList<String> prefixList = new ArrayList<>(Arrays.asList(mapping.getPrefixesURIS().split(",")));
        AtomicInteger count = new AtomicInteger(1);
@@ -81,7 +88,9 @@ public class YamlGenerator {
        yamlFactory.configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false);
 
        ObjectMapper mapper = new ObjectMapper(yamlFactory);
-       mapper.writeValue(new File("src/main/resources/mappings.yarrrml.yml"), yamlMapping);
 
+       mapping.setYamlFile(mapper.writeValueAsString(yamlMapping));
+       mappingRepository.save(mapping);
+       mapper.writeValue(new File("src/main/static/mappings.yarrrml.yml"), yamlMapping);
    }
 }

@@ -7,12 +7,12 @@ public class ExternalCommandExecutor {
     public void executeYARRRMLParser() {
 
         ProcessBuilder builder1 = new ProcessBuilder("docker", "run", "--rm", "-v",
-                "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\resources:/data",
+                "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static:/data",
                 "rmlio/yarrrml-parser:latest", "-i", "/data/mappings.yarrrml.yml");
 
         // Redirect standard output (STDOUT) to a file
         builder1.redirectOutput(new File(
-                "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\resources\\rules.rml.ttl"));
+                "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\rules.rml.ttl"));
 
         try {
             Process process = builder1.start();
@@ -21,12 +21,12 @@ public class ExternalCommandExecutor {
 
             if (exitCode == 0) {
                 ProcessBuilder builder2 = new ProcessBuilder("docker", "run", "--rm", "-v",
-                        "C:\\\\Users\\\\Zihan\\\\Desktop\\\\TFG\\\\tab2kgwiz-api\\\\src\\\\main\\\\resources:/data", "rmlio/rmlmapper-java"
+                        "C:\\\\Users\\\\Zihan\\\\Desktop\\\\TFG\\\\tab2kgwiz-api\\\\src\\\\main\\\\static:/data", "rmlio/rmlmapper-java"
                         , "-m", "rules.rml.ttl");
 
                 // Redirect standard output (STDOUT) to a file
                 builder2.redirectOutput(new File(
-                        "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\resources\\output.txt"));
+                        "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\output.txt"));
 
                 try {
                     Process process2 = builder2.start();

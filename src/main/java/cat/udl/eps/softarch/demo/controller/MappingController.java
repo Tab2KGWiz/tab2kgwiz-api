@@ -88,7 +88,7 @@ public class MappingController {
             List<String[]> entries = Arrays.stream(mapping.getFileContent().split("\n")).map(line ->
                     line.split(",")).toList();
 
-            try (CSVWriter writer = new CSVWriter(new FileWriter("src/main/resources/mappings.csv"), ',',
+            try (CSVWriter writer = new CSVWriter(new FileWriter("src/main/static/mappings.csv"), ',',
                     CSVWriter.NO_QUOTE_CHARACTER)) {
                 for (String[] entry : entries) {
                     writer.writeNext(entry);
