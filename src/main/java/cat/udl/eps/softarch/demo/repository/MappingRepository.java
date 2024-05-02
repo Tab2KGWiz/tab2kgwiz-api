@@ -27,6 +27,6 @@ public interface MappingRepository extends PagingAndSortingRepository<Mapping, L
 
     Optional<Mapping> findById(Long id);
 
-    // In the case that we have unique mapping for each supplier
-    Optional<Mapping> findByProvidedBy(Supplier providedBy);
+    // In the case that we have multiple mapping for each supplier
+    List<Mapping> findByProvidedBy(Supplier supplier);
 }

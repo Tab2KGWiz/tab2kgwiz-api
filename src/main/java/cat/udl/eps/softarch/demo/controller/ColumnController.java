@@ -76,9 +76,12 @@ public class ColumnController {
 
         Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
-        Optional<Mapping> mappingBelongs = mappingRepository.findByProvidedBy(supplier);
+        int mappingSize = mappingRepository.findByProvidedBy(supplier).size();
 
-        column.setColumnBelongsTo(mappingBelongs.orElseThrow(NotFoundException::new));
+        // Get the last mapping created by the supplier
+        Mapping mappingBelongs = mappingRepository.findByProvidedBy(supplier).get(mappingSize - 1);
+
+        column.setColumnBelongsTo(mappingBelongs);
 
         column.setOntologyURI("http://dbpedia.org/ontology/");
 

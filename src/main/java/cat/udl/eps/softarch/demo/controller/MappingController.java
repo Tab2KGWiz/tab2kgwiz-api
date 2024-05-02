@@ -6,6 +6,7 @@ import cat.udl.eps.softarch.demo.exception.NotAuthorizedException;
 import cat.udl.eps.softarch.demo.exception.NotFoundException;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
 import cat.udl.eps.softarch.demo.repository.SupplierRepository;
+import org.apache.jena.base.Sys;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -82,6 +83,15 @@ public class MappingController {
         mapping.setProvidedBy(supplier);
         mapping.setPrefixesURIS("http://dbpedia.org/ontology/,http://schema.org/");
 
+        Iterable<Mapping> mappings = mappingRepository.findAll();
+        for (Mapping m : mappings) {
+            // If the csv header is the same, we assume that the yaml file is the same
+            if (m.getYamlFile() != null &&
+                    m.getFileContent().split("\n")[0].equals(mapping.getFileContent().split("\n")[0])) {
+                mapping.setYamlFile(m.getYamlFile());
+            }
+        }
+
         try {
             mapping = mappingRepository.save(mapping);
 
@@ -94,6 +104,7 @@ public class MappingController {
                     writer.writeNext(entry);
                 }
             }
+
         } catch (Exception e) {
             throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(mapping, "mapping"));
         }
