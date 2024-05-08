@@ -10,6 +10,8 @@ import org.hibernate.validator.constraints.Length;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.List;
+
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -42,4 +44,7 @@ public class Mapping extends UriEntity<Long> {
 
     @Size(max = fileSize)
     private String yamlFile;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "columnBelongsTo", cascade = CascadeType.ALL)
+    private List<cat.udl.eps.softarch.demo.domain.Column> columns;
 }

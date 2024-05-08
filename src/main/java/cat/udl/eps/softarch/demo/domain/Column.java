@@ -27,7 +27,7 @@ public class Column extends UriEntity<Long> {
     private String ontologyType;
 
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JsonIdentityReference(alwaysAsId = true)
     private Mapping columnBelongsTo;
 
