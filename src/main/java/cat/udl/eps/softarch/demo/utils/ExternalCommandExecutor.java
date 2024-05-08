@@ -1,10 +1,11 @@
 package cat.udl.eps.softarch.demo.utils;
 
-import java.io.File;
-import java.io.IOException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.*;
 
 public class ExternalCommandExecutor {
-    public void executeYARRRMLParser() {
+    public static byte[] executeYARRRMLParser() {
 
         ProcessBuilder builder1 = new ProcessBuilder("docker", "run", "--rm", "-v",
                 "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static:/data",
@@ -25,20 +26,25 @@ public class ExternalCommandExecutor {
                         , "-m", "rules.rml.ttl");
 
                 // Redirect standard output (STDOUT) to a file
-                builder2.redirectOutput(new File(
-                        "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\output.txt"));
+//                builder2.redirectOutput(new File(
+                        //"C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\    \static\\output.txt"));
 
                 try {
                     Process process2 = builder2.start();
-                    process2.waitFor(); // Wait for the container to finish
+                    //process2.waitFor(); // Wait for the container to finish
+
                     int exitCode2 = process.exitValue();
 
                     if (exitCode2 == 0) {
                         System.out.println("RML mapper run successfully!");
+                        InputStream stream = process2.getInputStream();
+
+                        return stream.readAllBytes();
+                        //return new byte[0];
                     } else {
                         System.err.println("Error running RML mapper. Exit code: " + exitCode2);
                     }
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
                 System.out.println("Yarrrml parser run successfully!");
@@ -49,28 +55,17 @@ public class ExternalCommandExecutor {
             e.printStackTrace();
         }
 
+        return new byte[0];
+    }
 
-//        ProcessBuilder builder2 = new ProcessBuilder("docker", "container", "run", "--rm", "--name", "yarrrmlmapper",
-//                "-v", "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\resources:/mnt/data",
-//                "yarrrmlmapper", "mappings.yarrrml.yml");
-//
-//        // Redirect standard output (STDOUT) to a file
-//        builder2.redirectOutput(new File(
-//                "C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\resources\\output.txt"));
-//
-//        try {
-//            Process process = builder2.start();
-//            process.waitFor(); // Wait for the container to finish
-//            int exitCode = process.exitValue();
-//
-//            if (exitCode == 0) {
-//                System.out.println("Docker container run successfully!");
-//            } else {
-//                System.err.println("Error running Docker container. Exit code: " + exitCode);
-//            }
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
+    public static byte[] generateLinkedData(MultipartFile yamlData, MultipartFile csvData) throws IOException {
+        File csvFile = new File("C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\mappings.csv");
 
+        File yamlFile = new File("C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\mappings.yarrrml.yml");
+
+        yamlData.transferTo(yamlFile);
+        csvData.transferTo(csvFile);
+
+        return executeYARRRMLParser();
     }
 }

@@ -6,11 +6,13 @@ import cat.udl.eps.softarch.demo.repository.MappingRepository;
 import cat.udl.eps.softarch.demo.utils.ExternalCommandExecutor;
 import cat.udl.eps.softarch.demo.utils.YamlGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -51,8 +53,18 @@ public class YamlController {
             throw new NotAuthorizedException();
         }
 
-        ExternalCommandExecutor executor = new ExternalCommandExecutor();
-        executor.executeYARRRMLParser();
+        ExternalCommandExecutor.executeYARRRMLParser();
         return ResponseEntity.ok().body("YARRRML parser executed successfully");
+    }
+
+    @PostMapping("/generateLinkedData")
+    public ResponseEntity<?> generateLinkedData(@RequestParam("yamlFile") MultipartFile yamlFile,
+                                                @RequestParam("csvFile") MultipartFile csvFile) throws IOException {
+        byte[] linkedData = ExternalCommandExecutor.generateLinkedData(yamlFile, csvFile);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Content-Disposition", "attachment; filename=linked-data.txt")
+                .body(linkedData);
     }
 }
