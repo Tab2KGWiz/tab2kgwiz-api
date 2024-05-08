@@ -64,8 +64,9 @@ public class ColumnController {
         }
     }
 
-    @RequestMapping(value = "/columns", method = RequestMethod.POST)
+    @RequestMapping(value = "/mappings/{id}/columns", method = RequestMethod.POST)
     public @ResponseBody PersistentEntityResource createColumn(PersistentEntityResourceAssembler resourceAssembler,
+                                                               @PathVariable Long id,
                                                                @RequestBody Column column) throws MethodArgumentNotValidException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
@@ -76,12 +77,13 @@ public class ColumnController {
 
         Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
-        int mappingSize = mappingRepository.findByProvidedBy(supplier).size();
+        if (mappingRepository.findById(id).isEmpty()) {
+            throw new NotFoundException();
+        }
 
-        // Get the last mapping created by the supplier
-        Mapping mappingBelongs = mappingRepository.findByProvidedBy(supplier).get(mappingSize - 1);
+        Mapping mapping = mappingRepository.findById(id).get();
 
-        column.setColumnBelongsTo(mappingBelongs);
+        column.setColumnBelongsTo(mapping);
 
         column.setOntologyURI("http://dbpedia.org/ontology/");
 

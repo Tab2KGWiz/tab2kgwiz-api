@@ -75,12 +75,12 @@ public class WriteYamlStepDefs {
         mapper.writeValue(new File("src/main/resources/pork.yaml"), yamlMapping);
     }
 
-    @Then("Write the yaml file with mapping name {string}")
-    public void writeTheYamlFile(String mappingName) throws IOException {
-
-        YamlGenerator yamlGenerator = new YamlGenerator();
-        yamlGenerator.generateYaml(mappingRepository, columnRepository, mappingName);
-
-    }
+//    @Then("Write the yaml file with mapping name {string}")
+//    public void writeTheYamlFile(String mappingName) throws IOException {
+//
+//        YamlGenerator yamlGenerator = new YamlGenerator();
+//        yamlGenerator.generateYaml(mappingRepository, columnRepository, mappingName);
+//
+//    }
 
 }

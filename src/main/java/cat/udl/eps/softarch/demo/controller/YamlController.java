@@ -1,5 +1,6 @@
 package cat.udl.eps.softarch.demo.controller;
 
+import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.exception.NotAuthorizedException;
 import cat.udl.eps.softarch.demo.repository.ColumnRepository;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
@@ -30,15 +31,21 @@ public class YamlController {
         this.mappingRepository = mappingRepository;
     }
 
-    @PostMapping("/yaml/generate")
-    public ResponseEntity<?> generateYaml(@RequestBody String mappingName) {
+    @PostMapping("/mappings/{id}/yaml/generate")
+    public ResponseEntity<?> generateYaml(@PathVariable Long id) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
             throw new NotAuthorizedException();
         }
 
+        if (mappingRepository.findById(id).isEmpty()) {
+            throw new IOException("Mapping not found");
+        }
+
+        Mapping mapping = mappingRepository.findById(id).get();
+
         try {
-            yamlGenerator.generateYaml(mappingRepository, columnRepository, mappingName);
+            yamlGenerator.generateYaml(mappingRepository, columnRepository, mapping);
             return ResponseEntity.ok().body("Yaml file generated successfully");
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Error generating the Yaml file");

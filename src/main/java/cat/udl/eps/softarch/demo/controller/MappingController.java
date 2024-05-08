@@ -88,27 +88,27 @@ public class MappingController {
         mapping.setProvidedBy(supplier);
         mapping.setPrefixesURIS("http://dbpedia.org/ontology/,http://schema.org/");
 
-        Iterable<Mapping> mappings = mappingRepository.findAll();
-        for (Mapping m : mappings) {
-            // If the csv header is the same, we assume that the yaml file is the same
-            if (m.getYamlFile() != null &&
-                    m.getFileContent().split("\n")[0].equals(mapping.getFileContent().split("\n")[0])) {
-                mapping.setYamlFile(m.getYamlFile());
-            }
-        }
+//        Iterable<Mapping> mappings = mappingRepository.findAll();
+//        for (Mapping m : mappings) {
+//            // If the csv header is the same, we assume that the yaml file is the same
+//            if (m.getYamlFile() != null &&
+//                    m.getFileContent().split("\n")[0].equals(mapping.getFileContent().split("\n")[0])) {
+//                mapping.setYamlFile(m.getYamlFile());
+//            }
+//        }
 
         try {
             mapping = mappingRepository.save(mapping);
 
-            List<String[]> entries = Arrays.stream(mapping.getFileContent().split("\n")).map(line ->
-                    line.split(",")).toList();
-
-            try (CSVWriter writer = new CSVWriter(new FileWriter("src/main/static/mappings.csv"), ',',
-                    CSVWriter.NO_QUOTE_CHARACTER)) {
-                for (String[] entry : entries) {
-                    writer.writeNext(entry);
-                }
-            }
+//            List<String[]> entries = Arrays.stream(mapping.getFileContent().split("\n")).map(line ->
+//                    line.split(",")).toList();
+//
+//            try (CSVWriter writer = new CSVWriter(new FileWriter("src/main/static/mappings.csv"), ',',
+//                    CSVWriter.NO_QUOTE_CHARACTER)) {
+//                for (String[] entry : entries) {
+//                    writer.writeNext(entry);
+//                }
+//            }
 
         } catch (Exception e) {
             throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(mapping, "mapping"));
@@ -121,9 +121,6 @@ public class MappingController {
     public ResponseEntity<String> generateMappingLinkedData(@PathVariable Long id,
                                                             @RequestParam("csvFile") MultipartFile csvFile) throws IOException {
 
-        //Authentication logic
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         Optional<Mapping> mapping = mappingRepository.findById(id);
 
         if (mapping.isEmpty()) {
@@ -131,6 +128,7 @@ public class MappingController {
         }
 
         // Authorization logic
+        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         //String currentSupplierUsername = authentication.getName();
         //if (!mapping.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
         //    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to generate linked data for this mapping.");
@@ -138,13 +136,11 @@ public class MappingController {
 
         String content = mapping.get().getYamlFile();
 
-        //File yamlFile = new File("C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\example.yaml");
         File yamlFile = File.createTempFile("temp", ".yaml");
         FileWriter yamlWriter = new FileWriter(yamlFile);
         yamlWriter.write(content);
         yamlWriter.close();
 
-        //File csvContent = new File("C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\example2.csv");
         File csvContent = File.createTempFile("temp", ".csv");
         csvFile.transferTo(csvContent);
 
@@ -181,6 +177,26 @@ public class MappingController {
             }
         }
     }
+
+//    @RequestMapping(value = "/mappings/{id}/columns", method = RequestMethod.GET)
+//    public ResponseEntity<String> getColumnsByMapping(@PathVariable Long id) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentSupplierUsername = authentication.getName();
+//
+//        Optional<Mapping> mapping = mappingRepository.findById(id);
+//
+//        if (mapping.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
+//        }
+//
+//        if (!mapping.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to get the columns of this mapping.");
+//        }
+//        mapping.get().getColumns();
+//
+//        return;
+//    }
+
 
     @RequestMapping(value = "/mappings/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<String> deleteMapping(@PathVariable Long id) {

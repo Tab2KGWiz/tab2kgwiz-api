@@ -22,14 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class YamlGenerator {
 
-   public void generateYaml(MappingRepository mappingRepository, ColumnRepository columnRepository, String mappingName) throws IOException {
-
-       if (mappingRepository.findByTitle(mappingName).isEmpty()) {
-           throw new IOException("Mapping not found");
-       }
-
-       Mapping mapping = mappingRepository.findByTitle(mappingName).get(0);
-
+   public void generateYaml(MappingRepository mappingRepository, ColumnRepository columnRepository, Mapping mapping) throws IOException {
        if (mapping.getYamlFile() != null) {
            // If the mapping already has a yaml file, we don't need to generate it again
 
