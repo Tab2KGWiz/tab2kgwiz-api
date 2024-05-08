@@ -1,4 +1,5 @@
 package cat.udl.eps.softarch.demo.controller;
+
 import cat.udl.eps.softarch.demo.config.BasicUserDetailsImpl;
 import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.domain.Supplier;
@@ -6,24 +7,28 @@ import cat.udl.eps.softarch.demo.exception.NotAuthorizedException;
 import cat.udl.eps.softarch.demo.exception.NotFoundException;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
 import cat.udl.eps.softarch.demo.repository.SupplierRepository;
-import org.apache.jena.base.Sys;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.data.rest.webmvc.PersistentEntityResource;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileWriter;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import com.opencsv.CSVWriter;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 @RepositoryRestController
 public class MappingController {
@@ -55,7 +60,7 @@ public class MappingController {
 
         Mapping m = mapping.get();
 
-        if(m.getProvidedBy().getId() == null) {
+        if (m.getProvidedBy().getId() == null) {
             throw new NotFoundException();
         }
 
@@ -110,6 +115,71 @@ public class MappingController {
         }
 
         return resourceAssembler.toFullResource(mapping);
+    }
+
+    @RequestMapping(value = "/mappings/{id}/generate", method = RequestMethod.POST)
+    public ResponseEntity<String> generateMappingLinkedData(@PathVariable Long id,
+                                                            @RequestParam("csvFile") MultipartFile csvFile) throws IOException {
+
+        //Authentication logic
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<Mapping> mapping = mappingRepository.findById(id);
+
+        if (mapping.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
+        }
+
+        // Authorization logic
+        //String currentSupplierUsername = authentication.getName();
+        //if (!mapping.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
+        //    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to generate linked data for this mapping.");
+        //}
+
+        String content = mapping.get().getYamlFile();
+
+        //File yamlFile = new File("C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\example.yaml");
+        File yamlFile = File.createTempFile("temp", ".yaml");
+        FileWriter yamlWriter = new FileWriter(yamlFile);
+        yamlWriter.write(content);
+        yamlWriter.close();
+
+        //File csvContent = new File("C:\\Users\\Zihan\\Desktop\\TFG\\tab2kgwiz-api\\src\\main\\static\\example2.csv");
+        File csvContent = File.createTempFile("temp", ".csv");
+        csvFile.transferTo(csvContent);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("csvFile", new FileSystemResource(csvContent));
+        body.add("yamlFile", new FileSystemResource(yamlFile));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        String serverUrl = "http://localhost:8080/generateLinkedData";
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            // Send POST request and handle potential exceptions
+            ResponseEntity<String> response = restTemplate.postForEntity(serverUrl, requestEntity, String.class);
+            return response;
+        } catch (RestClientResponseException e) {
+            // Handle error from the server (e.g., return appropriate HTTP status code)
+            return ResponseEntity.status(e.getStatusCode()).body("Error generating linked data: " + e.getMessage());
+        } catch (Exception e) {
+            // Handle other exceptions during communication
+            return ResponseEntity.internalServerError().body("Error generating linked data: " + e.getMessage());
+        } finally {
+            // Clean up temporary files
+            if (yamlFile.exists()) {
+                yamlFile.delete();
+            }
+            if (csvContent.exists()) {
+                csvContent.delete();
+            }
+        }
     }
 
     @RequestMapping(value = "/mappings/{id}", method = RequestMethod.DELETE)
