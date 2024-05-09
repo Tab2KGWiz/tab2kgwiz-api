@@ -83,6 +83,10 @@ public class ColumnController {
 
         Mapping mapping = mappingRepository.findById(id).get();
 
+        if (!Objects.equals(mapping.getProvidedBy().getId(), supplier.getId())) {
+            throw new NotAuthorizedException();
+        }
+
         column.setColumnBelongsTo(mapping);
 
         column.setOntologyURI("http://dbpedia.org/ontology/");
