@@ -49,6 +49,7 @@ public class WebSecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/mappings/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.PATCH, "/mappings/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.POST, "/mappings/{id}/columns").hasRole("SUPPLIER")
+                .requestMatchers(HttpMethod.PUT, "/mappings/{id}/columns/{columnId}").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.DELETE, "/columns/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.PATCH, "/columns/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.POST, "/mappings/{id}/yaml/generate").hasRole("SUPPLIER")

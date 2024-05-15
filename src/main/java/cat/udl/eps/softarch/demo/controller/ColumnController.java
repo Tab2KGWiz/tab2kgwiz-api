@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RepositoryRestController
 public class ColumnController {
@@ -88,7 +89,6 @@ public class ColumnController {
         }
 
         column.setColumnBelongsTo(mapping);
-
         column.setOntologyURI("http://dbpedia.org/ontology/");
 
         try {
@@ -125,4 +125,50 @@ public class ColumnController {
     }
 
 
+    @RequestMapping(value = "/mappings/{id}/columns/{columnId}", method = RequestMethod.PUT)
+    public @ResponseBody PersistentEntityResource updateColumn(PersistentEntityResourceAssembler resourceAssembler,
+                                                               @PathVariable Long id,
+                                                               @PathVariable Long columnId,
+                                                               @RequestBody Column column) throws MethodArgumentNotValidException {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            throw new NotAuthorizedException();
+        }
+
+        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
+
+        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
+
+        Column col;
+
+        if (mappingRepository.findById(id).isEmpty()) {
+            throw new NotFoundException();
+        }
+
+        Mapping mapping = mappingRepository.findById(id).get();
+
+        if (!Objects.equals(mapping.getProvidedBy().getId(), supplier.getId())) {
+            throw new NotAuthorizedException();
+        }
+
+        try {
+            Column result = columnRepository.findById(columnId)
+                    .map(existentColumn -> {
+                        existentColumn.setDataType(column.getDataType());
+                        System.out.println("updateColumn" + existentColumn);
+                        return columnRepository.save(existentColumn);
+                    })
+                    .orElseGet(() -> {
+                        column.setColumnBelongsTo(mapping);
+                        column.setOntologyURI("http://dbpedia.org/ontology/");
+                        return columnRepository.save(column);
+                    });
+
+            return resourceAssembler.toFullResource(result);
+        } catch (Exception e) {
+            throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(column, "column"));
+        }
+
+    }
 }
