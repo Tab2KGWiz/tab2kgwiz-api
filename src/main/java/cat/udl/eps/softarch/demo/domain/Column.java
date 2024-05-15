@@ -38,4 +38,14 @@ public class Column extends UriEntity<Long> {
         return id;
     }
 
+    @Override
+    public String toString() {
+        return "Column{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", dataType='" + dataType + '\'' +
+                ", ontologyURI='" + ontologyURI + '\'' +
+                ", ontologyType='" + ontologyType + '\'' +
+                '}';
+    }
 }

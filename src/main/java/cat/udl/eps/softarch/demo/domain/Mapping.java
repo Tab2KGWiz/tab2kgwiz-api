@@ -47,4 +47,19 @@ public class Mapping extends UriEntity<Long> {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "columnBelongsTo", cascade = CascadeType.ALL)
     private List<cat.udl.eps.softarch.demo.domain.Column> columns;
+
+    @Override
+    public String toString() {
+        return "Mapping{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", fileContent='" + fileContent + '\'' +
+                ", fileFormat='" + fileFormat + '\'' +
+                ", prefixesURIS='" + prefixesURIS + '\'' +
+                ", mainOntology='" + mainOntology + '\'' +
+                ", providedBy=" + providedBy +
+                ", yamlFile='" + yamlFile + '\'' +
+                '}';
+    }
 }
