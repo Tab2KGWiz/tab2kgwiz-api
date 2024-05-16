@@ -23,31 +23,31 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class YamlGenerator {
 
    public void generateYaml(MappingRepository mappingRepository, ColumnRepository columnRepository, Mapping mapping) throws IOException {
-       if (mapping.getYamlFile() != null) {
-           // If the mapping already has a yaml file, we don't need to generate it again
-
-           YAMLFactory yamlFactory = new YAMLFactory();
-
-           // Remove default quotes
-           yamlFactory.configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true);
-           // Remove --- from the start of the file
-           yamlFactory.configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false);
-
-           ObjectMapper mapper = new ObjectMapper(yamlFactory);
-
-           //YamlMapping yaml = mapper.readValue(mapping.getYamlFile(), YamlMapping.class);
-
-           mapper.writeValue(new File("src/main/static/mappings.yarrrml.yml"), mapping.getYamlFile());
-
-           String content = Files.readString(Paths.get("src/main/static/mappings.yarrrml.yml"), StandardCharsets.UTF_8);
-
-           // Remove the | character from the file
-           String modifiedContent = content.replace("|", "");
-
-           Files.write(Paths.get("src/main/static/mappings.yarrrml.yml"), modifiedContent.getBytes());
-
-           return;
-       }
+//       if (mapping.getYamlFile() != null) {
+//           // If the mapping already has a yaml file, we don't need to generate it again
+//
+//           YAMLFactory yamlFactory = new YAMLFactory();
+//
+//           // Remove default quotes
+//           yamlFactory.configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true);
+//           // Remove --- from the start of the file
+//           yamlFactory.configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false);
+//
+//           ObjectMapper mapper = new ObjectMapper(yamlFactory);
+//
+//           //YamlMapping yaml = mapper.readValue(mapping.getYamlFile(), YamlMapping.class);
+//
+//           mapper.writeValue(new File("src/main/static/mappings.yarrrml.yml"), mapping.getYamlFile());
+//
+//           String content = Files.readString(Paths.get("src/main/static/mappings.yarrrml.yml"), StandardCharsets.UTF_8);
+//
+//           // Remove the | character from the file
+//           String modifiedContent = content.replace("|", "");
+//
+//           Files.write(Paths.get("src/main/static/mappings.yarrrml.yml"), modifiedContent.getBytes());
+//
+//           return;
+//       }
 
        PrefixCCMap prefixCCMap = new PrefixCCMap();
 

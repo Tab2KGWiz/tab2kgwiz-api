@@ -140,8 +140,6 @@ public class ColumnController {
 
         Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
-        Column col;
-
         if (mappingRepository.findById(id).isEmpty()) {
             throw new NotFoundException();
         }
@@ -156,7 +154,6 @@ public class ColumnController {
             Column result = columnRepository.findById(columnId)
                     .map(existentColumn -> {
                         existentColumn.setDataType(column.getDataType());
-                        System.out.println("updateColumn" + existentColumn);
                         return columnRepository.save(existentColumn);
                     })
                     .orElseGet(() -> {

@@ -49,7 +49,8 @@ public class ExternalCommandExecutor {
                 }
                 System.out.println("Yarrrml parser run successfully!");
             } else {
-                System.err.println("Error running Yarrrml parser. Exit code: " + exitCode);
+                throw new RuntimeException("Error running Yarrrml parser. Exit code: " + exitCode);
+                //System.err.println("Error running Yarrrml parser. Exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
