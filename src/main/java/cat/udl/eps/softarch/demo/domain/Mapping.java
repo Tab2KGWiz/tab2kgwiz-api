@@ -38,7 +38,7 @@ public class Mapping extends UriEntity<Long> {
 
     private String mainOntology;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIdentityReference(alwaysAsId = true)
     private Supplier providedBy;
 

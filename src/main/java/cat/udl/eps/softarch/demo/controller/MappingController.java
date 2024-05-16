@@ -22,10 +22,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import com.opencsv.CSVWriter;
+
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,9 +41,8 @@ public class MappingController {
     }
 
     @RequestMapping(value = "/mappings/{id}", method = RequestMethod.GET)
-    public @ResponseBody PersistentEntityResource getMapping(PersistentEntityResourceAssembler resourceAssembler,
+    public @ResponseBody ResponseEntity<Mapping> getMapping(PersistentEntityResourceAssembler resourceAssembler,
                                                              @PathVariable Long id) {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
             throw new NotAuthorizedException();
@@ -65,7 +63,7 @@ public class MappingController {
         }
 
         if (m.getProvidedBy().getId().equals(supplier.getId())) {
-            return resourceAssembler.toFullResource(m);
+            return new ResponseEntity<>(m, HttpStatus.OK);
         } else {
             throw new NotAuthorizedException();
         }
@@ -88,27 +86,8 @@ public class MappingController {
         mapping.setProvidedBy(supplier);
         mapping.setPrefixesURIS("http://dbpedia.org/ontology/,http://schema.org/");
 
-//        Iterable<Mapping> mappings = mappingRepository.findAll();
-//        for (Mapping m : mappings) {
-//            // If the csv header is the same, we assume that the yaml file is the same
-//            if (m.getYamlFile() != null &&
-//                    m.getFileContent().split("\n")[0].equals(mapping.getFileContent().split("\n")[0])) {
-//                mapping.setYamlFile(m.getYamlFile());
-//            }
-//        }
-
         try {
             mapping = mappingRepository.save(mapping);
-
-//            List<String[]> entries = Arrays.stream(mapping.getFileContent().split("\n")).map(line ->
-//                    line.split(",")).toList();
-//
-//            try (CSVWriter writer = new CSVWriter(new FileWriter("src/main/static/mappings.csv"), ',',
-//                    CSVWriter.NO_QUOTE_CHARACTER)) {
-//                for (String[] entry : entries) {
-//                    writer.writeNext(entry);
-//                }
-//            }
 
         } catch (Exception e) {
             throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(mapping, "mapping"));
@@ -236,5 +215,25 @@ public class MappingController {
 
         mappingRepository.save(mapping);
         return ResponseEntity.ok("Mapping updated successfully.");
+    }
+
+
+    @RequestMapping(value = "/mappings", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<List<Long>> getAllMappings(PersistentEntityResourceAssembler resourceAssembler) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            throw new NotAuthorizedException();
+        }
+
+        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
+        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
+
+        List<Mapping> mappings = mappingRepository.findByProvidedBy(supplier);
+        if (mappings.isEmpty()) {
+            throw new NotFoundException();
+        }
+        List<Long> mappingIds = mappings.stream().map(Mapping::getId).toList();
+        return new ResponseEntity<>(mappingIds, HttpStatus.OK);
     }
 }
