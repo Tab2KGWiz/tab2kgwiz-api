@@ -219,7 +219,7 @@ public class MappingController {
 
 
     @RequestMapping(value = "/mappings", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<List<Long>> getAllMappings(PersistentEntityResourceAssembler resourceAssembler) {
+    public @ResponseBody ResponseEntity<List<Long>> getAllMappings() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
