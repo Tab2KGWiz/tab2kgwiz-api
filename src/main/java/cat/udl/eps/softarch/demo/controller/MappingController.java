@@ -132,7 +132,7 @@ public class MappingController {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        String serverUrl = "http://localhost:8080/generateLinkedData";
+        String serverUrl = "http://165.232.127.94:8081/generateLinkedData";
 
         RestTemplate restTemplate = new RestTemplate();
 

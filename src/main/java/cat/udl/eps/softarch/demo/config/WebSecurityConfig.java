@@ -53,8 +53,6 @@ public class WebSecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/columns/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.PATCH, "/columns/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.POST, "/mappings/{id}/yaml/generate").hasRole("SUPPLIER")
-                .requestMatchers(HttpMethod.POST, "/yaml/yarrrmlmapper").hasRole("SUPPLIER")
-                .requestMatchers(HttpMethod.POST, "/generateLinkedData").permitAll()
                 .requestMatchers(HttpMethod.POST, "/mappings/{id}/generate").permitAll()
                 //.requestMatchers(HttpMethod.POST, "/**/*").hasRole("SUPPLIER")
                 .requestMatchers(HttpMethod.PUT, "/**/*").authenticated()
