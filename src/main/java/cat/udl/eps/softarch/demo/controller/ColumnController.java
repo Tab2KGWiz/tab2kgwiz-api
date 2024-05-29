@@ -22,6 +22,7 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -60,6 +61,34 @@ public class ColumnController {
 
         if (mappingBelongs.isPresent() && Objects.equals(mappingBelongs.get().getProvidedBy().getId(), user.getId())) {
             return resourceAssembler.toFullResource(col);
+        } else {
+            throw new NotAuthorizedException();
+        }
+    }
+
+    @RequestMapping(value = "/mappings/{id}/columns", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<List<Column>> getColumns(PersistentEntityResourceAssembler resourceAssembler,
+                                                                 @PathVariable Long id) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            throw new NotAuthorizedException();
+        }
+
+        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
+
+        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
+        Optional<Mapping> mapping = mappingRepository.findById(id);
+
+        if (mapping.isEmpty()) {
+            throw new NotFoundException();
+        }
+
+        Mapping map = mapping.get();
+        assert map.getProvidedBy().getId() != null;
+
+        if (Objects.equals(map.getProvidedBy().getId(), supplier.getId())) {
+            return new ResponseEntity<>(map.getColumns(), HttpStatus.OK);
         } else {
             throw new NotAuthorizedException();
         }
