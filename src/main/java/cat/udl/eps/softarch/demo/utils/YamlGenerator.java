@@ -111,7 +111,6 @@ public class YamlGenerator {
 
        mapping.setYamlFile(mapper.writeValueAsString(yamlMapping));
        mappingRepository.save(mapping);
-       mapper.writeValue(new File("src/main/static/mappings.yarrrml.yml"), yamlMapping);
-
+       //mapper.writeValue(new File("src/main/static/mappings.yarrrml.yml"), yamlMapping);
    }
 }

@@ -219,7 +219,7 @@ public class MappingController {
 
 
     @RequestMapping(value = "/mappings", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<List<Long>> getAllMappings() {
+    public @ResponseBody ResponseEntity<List<Mapping>> getAllMappings() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
@@ -233,7 +233,6 @@ public class MappingController {
         if (mappings.isEmpty()) {
             throw new NotFoundException();
         }
-        List<Long> mappingIds = mappings.stream().map(Mapping::getId).toList();
-        return new ResponseEntity<>(mappingIds, HttpStatus.OK);
+        return new ResponseEntity<>(mappings, HttpStatus.OK);
     }
 }
