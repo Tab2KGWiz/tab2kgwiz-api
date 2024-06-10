@@ -67,8 +67,7 @@ public class ColumnController {
     }
 
     @RequestMapping(value = "/mappings/{id}/columns", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<List<Column>> getColumns(PersistentEntityResourceAssembler resourceAssembler,
-                                                                 @PathVariable Long id) {
+    public @ResponseBody ResponseEntity<List<Column>> getColumns(@PathVariable Long id) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
@@ -86,6 +85,8 @@ public class ColumnController {
 
         Mapping map = mapping.get();
         assert map.getProvidedBy().getId() != null;
+
+        //columnRepository.findByColumnBelongsTo(map)
 
         if (Objects.equals(map.getProvidedBy().getId(), supplier.getId())) {
             return new ResponseEntity<>(map.getColumns(), HttpStatus.OK);
