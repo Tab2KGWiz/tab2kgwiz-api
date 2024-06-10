@@ -38,6 +38,8 @@ public class Mapping extends UriEntity<Long> {
 
     private String mainOntology;
 
+    private boolean isAccessible;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIdentityReference(alwaysAsId = true)
     private Supplier providedBy;
@@ -60,6 +62,7 @@ public class Mapping extends UriEntity<Long> {
                 ", mainOntology='" + mainOntology + '\'' +
                 ", providedBy=" + providedBy +
                 ", yamlFile='" + yamlFile + '\'' +
+                ", isAccessible=" + isAccessible +
                 '}';
     }
 }

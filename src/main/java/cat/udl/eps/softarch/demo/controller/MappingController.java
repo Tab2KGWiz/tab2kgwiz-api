@@ -198,12 +198,11 @@ public class MappingController {
 
 
     @RequestMapping(value = "/mappings/{id}", method = RequestMethod.PATCH)
-    public ResponseEntity<String> updateMapping(@RequestBody Mapping mapping) {
+    public ResponseEntity<String> updateMapping(@PathVariable Long id, @RequestBody Mapping mapping) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentSupplierUsername = authentication.getName();
 
-        assert mapping.getId() != null;
-        Optional<Mapping> mappingOptional = mappingRepository.findById(mapping.getId());
+        Optional<Mapping> mappingOptional = mappingRepository.findById(id);
 
         if (mappingOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
@@ -213,7 +212,11 @@ public class MappingController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to update this mapping.");
         }
 
-        mappingRepository.save(mapping);
+        Mapping existingMapping = mappingOptional.get();
+        existingMapping.setAccessible(mapping.isAccessible());
+        existingMapping.setTitle(mapping.getTitle());
+
+        mappingRepository.save(existingMapping);
         return ResponseEntity.ok("Mapping updated successfully.");
     }
 
