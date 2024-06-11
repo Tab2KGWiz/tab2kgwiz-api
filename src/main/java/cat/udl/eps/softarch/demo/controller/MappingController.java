@@ -62,10 +62,10 @@ public class MappingController {
             throw new NotFoundException();
         }
 
-        if (m.getProvidedBy().getId().equals(supplier.getId())) {
+        if (m.isAccessible() || m.getProvidedBy().getId().equals(supplier.getId())) {
             return new ResponseEntity<>(m, HttpStatus.OK);
         } else {
-            throw new NotAuthorizedException();
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 
