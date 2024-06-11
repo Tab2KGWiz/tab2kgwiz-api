@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RepositoryRestResource(excerptProjection = CustomMapping.class)
@@ -29,4 +30,6 @@ public interface MappingRepository extends PagingAndSortingRepository<Mapping, L
 
     // In the case that we have multiple mapping for each supplier
     List<Mapping> findByProvidedBy(Supplier supplier);
+
+    List<Mapping> findByIsAccessibleTrueAndProvidedByNot(Supplier supplier);
 }

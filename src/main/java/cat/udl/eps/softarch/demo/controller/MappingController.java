@@ -233,6 +233,10 @@ public class MappingController {
         Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
         List<Mapping> mappings = mappingRepository.findByProvidedBy(supplier);
+
+        // List of mappings that are public and not provided by the current supplier
+        mappings.addAll(mappingRepository.findByIsAccessibleTrueAndProvidedByNot(supplier));
+
         if (mappings.isEmpty()) {
             throw new NotFoundException();
         }
