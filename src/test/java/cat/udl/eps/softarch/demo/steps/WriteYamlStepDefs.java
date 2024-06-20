@@ -62,7 +62,7 @@ public class WriteYamlStepDefs {
         YamlMapping yamlMapping = new YamlMapping();
         yamlMapping.setPrefixes(prefixes);
 
-        yamlMapping.setMappings(mappings);
+        //yamlMapping.setMappings(mappings);
 
         YAMLFactory yamlFactory = new YAMLFactory();
 

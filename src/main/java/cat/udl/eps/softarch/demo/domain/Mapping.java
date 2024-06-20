@@ -34,11 +34,14 @@ public class Mapping extends UriEntity<Long> {
 
     private String fileFormat;
 
+    @Length(max = 500)
     private String prefixesURIS;
 
     private String mainOntology;
 
     private boolean isAccessible;
+
+    private String mainColumn;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIdentityReference(alwaysAsId = true)
@@ -63,6 +66,7 @@ public class Mapping extends UriEntity<Long> {
                 ", providedBy=" + providedBy +
                 ", yamlFile='" + yamlFile + '\'' +
                 ", isAccessible=" + isAccessible +
+                ", mainColumn='" + mainColumn + '\'' +
                 '}';
     }
 }

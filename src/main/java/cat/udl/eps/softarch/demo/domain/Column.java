@@ -31,7 +31,19 @@ public class Column extends UriEntity<Long> {
     @JsonIdentityReference(alwaysAsId = true)
     private Mapping columnBelongsTo;
 
-//    private String measurement;
+    private boolean isMeasurement;
+
+    private String subjectOntology;
+
+    private String relatesToProperty;
+
+    private String hasValue;
+
+    private String hasUnit;
+
+    private String hasTimestamp;
+
+    private String measurementMadeBy;
 
     @Override
     public Long getId() {
@@ -46,6 +58,13 @@ public class Column extends UriEntity<Long> {
                 ", dataType='" + dataType + '\'' +
                 ", ontologyURI='" + ontologyURI + '\'' +
                 ", ontologyType='" + ontologyType + '\'' +
+                ", isMeasurement=" + isMeasurement + '\'' +
+                ", subjectOntology='" + subjectOntology + '\'' +
+                ", relatesToProperty='" + relatesToProperty + '\'' +
+                ", hasValue='" + hasValue + '\'' +
+                ", hasUnit='" + hasUnit + '\'' +
+                ", hasTimestamp='" + hasTimestamp + '\'' +
+                ", measurementMadeBy='" + measurementMadeBy + '\'' +
                 '}';
     }
 }

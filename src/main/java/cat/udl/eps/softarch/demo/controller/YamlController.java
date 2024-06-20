@@ -86,7 +86,8 @@ public class YamlController {
 
         try {
             yamlGenerator.generateYaml(mappingRepository, columnRepository, mapping);
-            return ResponseEntity.ok().body("Yaml file generated successfully");
+            return ResponseEntity.ok().body(mapping.getYamlFile());
+//            return ResponseEntity.ok().body("Yaml file generated successfully");
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Error generating the Yaml file");
         }

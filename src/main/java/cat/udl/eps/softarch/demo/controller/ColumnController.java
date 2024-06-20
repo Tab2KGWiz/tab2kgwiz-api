@@ -184,6 +184,12 @@ public class ColumnController {
             Column result = columnRepository.findById(columnId)
                     .map(existentColumn -> {
                         existentColumn.setDataType(column.getDataType());
+                        existentColumn.setSubjectOntology(column.getSubjectOntology());
+                        existentColumn.setRelatesToProperty(column.getRelatesToProperty());
+                        existentColumn.setHasUnit(column.getHasUnit());
+                        existentColumn.setHasValue(column.getHasValue());
+                        existentColumn.setHasTimestamp(column.getHasTimestamp());
+                        existentColumn.setMeasurementMadeBy(column.getMeasurementMadeBy());
                         return columnRepository.save(existentColumn);
                     })
                     .orElseGet(() -> {

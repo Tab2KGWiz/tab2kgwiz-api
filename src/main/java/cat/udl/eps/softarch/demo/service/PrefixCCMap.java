@@ -133,9 +133,17 @@ public class PrefixCCMap extends PrefixMapStd {
             case "http://www.w3.org/1999/02/22-rdf-syntax-ns#": return "rdf";
             case "http://www.w3.org/2000/01/rdf-schema#": return "rdfs";
             case "http://www.w3.org/2002/07/owl#": return "owl";
-            case "http://www.w3.org/2001/XMLSchema#": return "xsd";
             case "http://xmlns.com/foaf/0.1/": return "foaf";
             case "http://purl.org/net/schemas/space/": return "space";
+            case "https://ai4pork.angliru.udl.cat/schauer/": return "base";
+            case "https://ai4pork.angliru.udl.cat/": return "ai4pork";
+            case "https://saref.etsi.org/saref4agri/": return "s4agri";
+            case "https://saref.etsi.org/saref4auto/": return "auto";
+            case "https://saref.etsi.org/saref4city/": return "s4city";
+            case "http://www.ontology-of-units-of-measure.org/resource/om-2/": return "om";
+            case "http://www.w3.org/2006/time#": return "time";
+            case "http://www.w3.org/2001/XMLSchema#": return "xsd";
+
             default: {
                 RestTemplate restTemplate = new RestTemplate();
                 try {
