@@ -219,11 +219,6 @@ public class MappingController {
         existingMapping.setAccessible(mapping.isAccessible());
         existingMapping.setTitle(mapping.getTitle());
 
-        if (mapping.getMainOntology() != null && mapping.getMainColumn() != null) {
-            existingMapping.setMainOntology(mapping.getMainOntology());
-            existingMapping.setMainColumn(mapping.getMainColumn());
-        }
-
         mappingRepository.save(existingMapping);
         return ResponseEntity.ok("Mapping updated successfully.");
     }
