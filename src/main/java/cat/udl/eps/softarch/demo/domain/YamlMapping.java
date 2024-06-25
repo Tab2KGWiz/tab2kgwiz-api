@@ -36,9 +36,7 @@ public class YamlMapping {
         @JsonProperty
         private List<PredicateObject> po;
 
-
     }
-
 
     @Setter
     @Getter
@@ -49,6 +47,10 @@ public class YamlMapping {
         @JsonProperty
         private PropertyValue o;
 
+        public PredicateObject(String a, PropertyValue propertyValue) {
+            this.p = a;
+            this.o = propertyValue;
+        }
     }
 
     @Getter
@@ -78,5 +80,9 @@ public class YamlMapping {
         @JsonProperty
         private String referenceFormulation;
 
+        public Sources(String s, String fileFormat) {
+            this.access = s;
+            this.referenceFormulation = fileFormat;
+        }
     }
 }
