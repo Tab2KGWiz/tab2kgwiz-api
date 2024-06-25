@@ -33,6 +33,8 @@ public class Column extends UriEntity<Long> {
 
     private boolean isMeasurement;
 
+    private boolean isIdentifier;
+
     private String subjectOntology;
 
     private String relatesToProperty;
@@ -44,6 +46,8 @@ public class Column extends UriEntity<Long> {
     private String hasTimestamp;
 
     private String measurementMadeBy;
+
+    private String label;
 
     @Override
     public Long getId() {
@@ -59,12 +63,14 @@ public class Column extends UriEntity<Long> {
                 ", ontologyURI='" + ontologyURI + '\'' +
                 ", ontologyType='" + ontologyType + '\'' +
                 ", isMeasurement=" + isMeasurement + '\'' +
+                ", isIdentifier=" + isIdentifier + '\'' +
                 ", subjectOntology='" + subjectOntology + '\'' +
                 ", relatesToProperty='" + relatesToProperty + '\'' +
                 ", hasValue='" + hasValue + '\'' +
                 ", hasUnit='" + hasUnit + '\'' +
                 ", hasTimestamp='" + hasTimestamp + '\'' +
                 ", measurementMadeBy='" + measurementMadeBy + '\'' +
+                ", label='" + label + '\'' +
                 '}';
     }
 }

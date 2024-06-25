@@ -84,7 +84,10 @@ public class MappingController {
         Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
         mapping.setProvidedBy(supplier);
-        mapping.setPrefixesURIS("http://dbpedia.org/ontology/,http://schema.org/");
+
+        //mapping.setPrefixesURIS("http://dbpedia.org/ontology/,http://schema.org/");
+        String defaultPrefixes = "https://saref.etsi.org/core/,https://ai4pork.angliru.udl.cat/schauer/,https://ai4pork.angliru.udl.cat/,https://saref.etsi.org/saref4agri/,https://saref.etsi.org/saref4city/,https://saref.etsi.org/saref4auto/,http://www.ontology-of-units-of-measure.org/resource/om-2/,http://www.w3.org/2006/time#,http://www.w3.org/2000/01/rdf-schema#,http://www.w3.org/2001/XMLSchema#";
+        mapping.setPrefixesURIS(defaultPrefixes);
 
         try {
             mapping = mappingRepository.save(mapping);
@@ -215,6 +218,11 @@ public class MappingController {
         Mapping existingMapping = mappingOptional.get();
         existingMapping.setAccessible(mapping.isAccessible());
         existingMapping.setTitle(mapping.getTitle());
+
+        if (mapping.getMainOntology() != null && mapping.getMainColumn() != null) {
+            existingMapping.setMainOntology(mapping.getMainOntology());
+            existingMapping.setMainColumn(mapping.getMainColumn());
+        }
 
         mappingRepository.save(existingMapping);
         return ResponseEntity.ok("Mapping updated successfully.");

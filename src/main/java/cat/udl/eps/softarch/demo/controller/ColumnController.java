@@ -190,11 +190,15 @@ public class ColumnController {
                         existentColumn.setHasValue(column.getHasValue());
                         existentColumn.setHasTimestamp(column.getHasTimestamp());
                         existentColumn.setMeasurementMadeBy(column.getMeasurementMadeBy());
+                        existentColumn.setIdentifier(column.isIdentifier());
+                        existentColumn.setMeasurement(column.isMeasurement());
+                        existentColumn.setOntologyType(column.getOntologyType());
+                        existentColumn.setOntologyURI(column.getOntologyURI());
+                        existentColumn.setLabel(column.getLabel());
                         return columnRepository.save(existentColumn);
                     })
                     .orElseGet(() -> {
                         column.setColumnBelongsTo(mapping);
-                        column.setOntologyURI("http://dbpedia.org/ontology/");
                         return columnRepository.save(column);
                     });
 

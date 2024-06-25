@@ -26,5 +26,7 @@ public interface ColumnRepository extends PagingAndSortingRepository<Column, Lon
     Column findByTitleAndColumnBelongsTo(String title, Mapping mapping);
 
     List<Column> findByColumnBelongsTo(Mapping mapping);
+
+    List<Column> findByColumnBelongsToAndIsMeasurement(Mapping mapping, boolean isMeasurement);
 }
 
