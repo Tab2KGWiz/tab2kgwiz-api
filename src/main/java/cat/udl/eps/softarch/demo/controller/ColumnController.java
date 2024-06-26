@@ -187,7 +187,6 @@ public class ColumnController {
                         existentColumn.setSubjectOntology(column.getSubjectOntology());
                         existentColumn.setRelatesToProperty(column.getRelatesToProperty());
                         existentColumn.setHasUnit(column.getHasUnit());
-                        existentColumn.setHasValue(column.getHasValue());
                         existentColumn.setHasTimestamp(column.getHasTimestamp());
                         existentColumn.setMeasurementMadeBy(column.getMeasurementMadeBy());
                         existentColumn.setIdentifier(column.isIdentifier());
@@ -195,6 +194,7 @@ public class ColumnController {
                         existentColumn.setOntologyType(column.getOntologyType());
                         existentColumn.setOntologyURI(column.getOntologyURI());
                         existentColumn.setLabel(column.getLabel());
+                        existentColumn.setPrefix(column.getPrefix());
                         return columnRepository.save(existentColumn);
                     })
                     .orElseGet(() -> {

@@ -49,6 +49,9 @@ public class Column extends UriEntity<Long> {
 
     private String label;
 
+    private String prefix;
+
+
     @Override
     public Long getId() {
         return id;
@@ -71,6 +74,7 @@ public class Column extends UriEntity<Long> {
                 ", hasTimestamp='" + hasTimestamp + '\'' +
                 ", measurementMadeBy='" + measurementMadeBy + '\'' +
                 ", label='" + label + '\'' +
+                ", prefix='" + prefix + '\'' +
                 '}';
     }
 }

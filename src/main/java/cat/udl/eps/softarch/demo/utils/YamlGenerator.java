@@ -21,22 +21,17 @@ public class YamlGenerator {
 
     public void generateYaml(MappingRepository mappingRepository, ColumnRepository columnRepository, Mapping mapping) throws IOException {
 
-        PrefixCCMap prefixCCMap = new PrefixCCMap();
-
-        Map<String, String> prefixes = new HashMap<>();
-
         Map<String, String> prefixes4Factory = new HashMap<>();
+        prefixes4Factory.put("saref", "https://saref.etsi.org/core/");
+        prefixes4Factory.put("base", "http://tab2kgwiz.udl.cat/");
+        prefixes4Factory.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+        prefixes4Factory.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 
         Map<String, YamlMapping.Mappings> mappings = new HashMap<>();
 
         ArrayList<String> prefixList = new ArrayList<>(Arrays.asList(mapping.getPrefixesURIS().split(",")));
-        AtomicInteger count = new AtomicInteger(1);
 
-        prefixList.forEach(prefix -> {
-            prefixes.put(prefix, prefixCCMap.prefixCCReverseLookup(prefix));
-            prefixes4Factory.put(prefixCCMap.prefixCCReverseLookup(prefix), prefix);
-            count.getAndIncrement();
-        });
+        prefixList.forEach(prefix -> prefixes4Factory.put(prefix.split(";")[0], prefix.split(";")[1]));
 
         YamlMapping yamlMapping = new YamlMapping();
         yamlMapping.setPrefixes(prefixes4Factory);
@@ -50,39 +45,39 @@ public class YamlGenerator {
                 yamlMappingsMap.setSources(List.of(new YamlMapping.Sources("mappings.csv", mapping.getFileFormat())));
                 yamlMappingsMap.setS("base" + ":$(" + column.getTitle() + ")");
 
-
                 poList.add(new YamlMapping.PredicateObject("a", new YamlMapping.PropertyValue(column.getOntologyType()
                         + "/" + column.getLabel())));
                 poList.add(new YamlMapping.PredicateObject("rdfs:label", new YamlMapping.PropertyValue("$(" + column.getTitle() + ")")));
                 yamlMappingsMap.setPo(poList);
-                mappings.put(column.getTitle(), yamlMappingsMap);
+                mappings.put(column.getTitle().toLowerCase().replaceAll("[\\s()]", ""), yamlMappingsMap);
 
             } else if (column.isMeasurement()) {
                 int randomNum = rand.nextInt(1000, 9999);
                 yamlMappingsMap.setSources(List.of(new YamlMapping.Sources("mappings.csv", mapping.getFileFormat())));
-                yamlMappingsMap.setS("base:measurements" + "/" + column.getLabel() + "-" + randomNum);
+                yamlMappingsMap.setS("base:measurements" + "/" +
+                        column.getLabel().toLowerCase().replaceAll("[\\s()]", "") + "-" + randomNum);
                 poList.add(new YamlMapping.PredicateObject("a", new YamlMapping.PropertyValue("saref:Measurement")));
                 poList.add(new YamlMapping.PredicateObject("rdfs:label",
                         new YamlMapping.PropertyValue(column.getLabel() + " " + randomNum)));
                 poList.add(new YamlMapping.PredicateObject("saref:relatesToProperty",
-                        new YamlMapping.PropertyValue("auto:" + column.getLabel() + "~iri")));
+                        new YamlMapping.PropertyValue(column.getOntologyType() + "~iri")));
                 poList.add(new YamlMapping.PredicateObject("saref:hasValue", new YamlMapping.PropertyValue(
                         "$(" + column.getTitle() + ")", column.getDataType())));
                 poList.add(new YamlMapping.PredicateObject("saref:hasUnit",
-                        new YamlMapping.PropertyValue("om:gram~iri")));
+                        new YamlMapping.PropertyValue(column.getHasUnit())));
                 poList.add(new YamlMapping.PredicateObject("saref:hasTimestamp",
                         new YamlMapping.PropertyValue(column.getHasTimestamp())));
                 poList.add(new YamlMapping.PredicateObject("saref:measurementMadeBy",
-                        new YamlMapping.PropertyValue(column.getMeasurementMadeBy())));
+                        new YamlMapping.PropertyValue("base:" + column.getMeasurementMadeBy() + "~iri")));
 
                 Column identifierColumn = columnRepository.findByColumnBelongsToAndIsMeasurement(
                         mapping, true).get(0);
                 poList.add(new YamlMapping.PredicateObject("saref:isMeasurementOf",
-                        new YamlMapping.PropertyValue("base:" + identifierColumn.getLabel() + "/$(" +
+                        new YamlMapping.PropertyValue("base" + ":$(" +
                                 identifierColumn.getTitle() + ")~iri")));
 
                 yamlMappingsMap.setPo(poList);
-                mappings.put(column.getTitle(), yamlMappingsMap);
+                mappings.put(column.getTitle().toLowerCase().replaceAll("[\\s()]", ""), yamlMappingsMap);
             }
         });
 
