@@ -56,19 +56,28 @@ public class YamlMapping {
     @Getter
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class PropertyValue {
+        @Setter
         @JsonProperty
         private String value;
+
+        @Setter
         @JsonProperty
         private String datatype;
 
-        public PropertyValue(String value, String datatype) {
+        @Setter
+        @JsonProperty
+        private String type;
+
+        public PropertyValue(String value, String type) {
             this.value = value;
-            this.datatype = datatype;
+            this.type = type;
         }
 
         public PropertyValue(String value) {
             this.value = value;
         }
+
+        public PropertyValue() {}
 
     }
 
