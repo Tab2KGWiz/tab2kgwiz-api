@@ -51,6 +51,7 @@ public class Column extends UriEntity<Long> {
 
     private String prefix;
 
+    private String isMeasurementOf;
 
     @Override
     public Long getId() {
@@ -75,6 +76,7 @@ public class Column extends UriEntity<Long> {
                 ", measurementMadeBy='" + measurementMadeBy + '\'' +
                 ", label='" + label + '\'' +
                 ", prefix='" + prefix + '\'' +
+                ", isMeasurementOf='" + isMeasurementOf + '\'' +
                 '}';
     }
 }
