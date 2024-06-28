@@ -101,7 +101,7 @@ public class MappingController {
 
     @RequestMapping(value = "/mappings/{id}/generate", method = RequestMethod.POST)
     public ResponseEntity<String> generateMappingLinkedData(@PathVariable Long id,
-                                                            @RequestParam("csvFile") MultipartFile csvFile) throws IOException {
+                                            @RequestParam("csvFile") MultipartFile csvFile) throws IOException {
 
         Optional<Mapping> mapping = mappingRepository.findById(id);
 
@@ -142,7 +142,8 @@ public class MappingController {
         try {
             // Send POST request and handle potential exceptions
             ResponseEntity<String> response = restTemplate.postForEntity(serverUrl, requestEntity, String.class);
-            return response;
+
+            return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
         } catch (RestClientResponseException e) {
             // Handle error from the server (e.g., return appropriate HTTP status code)
             return ResponseEntity.status(e.getStatusCode()).body("Error generating linked data: " + e.getMessage());
