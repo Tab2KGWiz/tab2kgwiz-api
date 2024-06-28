@@ -20,7 +20,7 @@ public class YamlGenerator {
 
         Map<String, String> prefixes4Factory = new HashMap<>();
         prefixes4Factory.put("saref", "https://saref.etsi.org/core/");
-        prefixes4Factory.put("base", "http://tab2kgwiz.udl.cat/");
+        prefixes4Factory.put("base", "https://tab2kgwiz.udl.cat/");
         prefixes4Factory.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
         prefixes4Factory.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 
@@ -66,8 +66,13 @@ public class YamlGenerator {
 
                 poList.add(new YamlMapping.PredicateObject("saref:hasUnit",
                         new YamlMapping.PropertyValue(column.getHasUnit(), "iri")));
-                poList.add(new YamlMapping.PredicateObject("saref:hasTimestamp",
-                        new YamlMapping.PropertyValue("$(" + column.getHasTimestamp() + ")")));
+
+                YamlMapping.PropertyValue hasTimestampPropertyValue = new YamlMapping.PropertyValue();
+                hasTimestampPropertyValue.setValue("$(" + column.getHasTimestamp() + ")");
+                Column hasTimestampColumn = columnRepository.findByTitleAndColumnBelongsTo(column.getHasTimestamp(), mapping);
+                hasTimestampPropertyValue.setDatatype(hasTimestampColumn.getDataType());
+                poList.add(new YamlMapping.PredicateObject("saref:hasTimestamp", hasTimestampPropertyValue));
+
                 poList.add(new YamlMapping.PredicateObject("saref:measurementMadeBy",
                         new YamlMapping.PropertyValue("base:" + column.getMeasurementMadeBy(), "iri")));
 
