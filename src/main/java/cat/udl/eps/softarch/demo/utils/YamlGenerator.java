@@ -43,10 +43,11 @@ public class YamlGenerator {
                 yamlMappingsMap.setSources(List.of(new YamlMapping.Sources("mappings.csv", mapping.getFileFormat())));
                 yamlMappingsMap.setS("base" + ":$(" + columnTitle + ")");
 
-                poList.add(new YamlMapping.PredicateObject("a", new YamlMapping.PropertyValue(column.getOntologyType()
-                        + "/" + column.getLabel())));
+                poList.add(new YamlMapping.PredicateObject("rdf:type", new YamlMapping.PropertyValue(column.getOntologyType()
+                        + "/" + column.getLabel(), "iri")));
                 poList.add(new YamlMapping.PredicateObject("rdfs:label", new YamlMapping.PropertyValue("$("
                         + columnTitle + ")")));
+
                 yamlMappingsMap.setPo(poList);
                 mappings.put(column.getTitle().toLowerCase().replaceAll("[\\s()]", ""), yamlMappingsMap);
 
