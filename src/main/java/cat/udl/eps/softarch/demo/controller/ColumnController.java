@@ -219,9 +219,6 @@ public class ColumnController {
                         if (column.getIsMeasurementOf() != null) {
                             existentColumn.setIsMeasurementOf(column.getIsMeasurementOf());
                         }
-                        if (column.getHasValue() != null) {
-                            existentColumn.setHasValue(column.getHasValue());
-                        }
                         if (column.getRelatedTo() != null) {
                             existentColumn.setRelatedTo(column.getRelatedTo());
                         }
