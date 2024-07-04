@@ -26,7 +26,6 @@ public class Column extends UriEntity<Long> {
 
     private String ontologyType;
 
-
     @ManyToOne(cascade = CascadeType.ALL)
     @JsonIdentityReference(alwaysAsId = true)
     private Mapping columnBelongsTo;
@@ -34,8 +33,6 @@ public class Column extends UriEntity<Long> {
     private boolean isMeasurement;
 
     private boolean isIdentifier;
-
-    private String subjectOntology;
 
     private String relatesToProperty;
 
@@ -53,6 +50,10 @@ public class Column extends UriEntity<Long> {
 
     private String isMeasurementOf;
 
+    private String relatedTo;
+
+    private String relationShip;
+
     @Override
     public Long getId() {
         return id;
@@ -68,7 +69,6 @@ public class Column extends UriEntity<Long> {
                 ", ontologyType='" + ontologyType + '\'' +
                 ", isMeasurement=" + isMeasurement + '\'' +
                 ", isIdentifier=" + isIdentifier + '\'' +
-                ", subjectOntology='" + subjectOntology + '\'' +
                 ", relatesToProperty='" + relatesToProperty + '\'' +
                 ", hasValue='" + hasValue + '\'' +
                 ", hasUnit='" + hasUnit + '\'' +
@@ -77,6 +77,8 @@ public class Column extends UriEntity<Long> {
                 ", label='" + label + '\'' +
                 ", prefix='" + prefix + '\'' +
                 ", isMeasurementOf='" + isMeasurementOf + '\'' +
+                ", relatedTo='" + relatedTo + '\'' +
+                ", relationShip='" + relationShip + '\'' +
                 '}';
     }
 }

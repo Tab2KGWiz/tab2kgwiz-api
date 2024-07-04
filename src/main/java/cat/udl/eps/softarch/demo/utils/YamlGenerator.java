@@ -23,6 +23,7 @@ public class YamlGenerator {
         prefixes4Factory.put("base", "https://tab2kgwiz.udl.cat/");
         prefixes4Factory.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
         prefixes4Factory.put("xsd", "http://www.w3.org/2001/XMLSchema#");
+        prefixes4Factory.put("s4agri", "https://saref.etsi.org/saref4agri/");
 
         Map<String, YamlMapping.Mappings> mappings = new HashMap<>();
 
@@ -47,6 +48,13 @@ public class YamlGenerator {
                         + "/" + column.getLabel(), "iri")));
                 poList.add(new YamlMapping.PredicateObject("rdfs:label", new YamlMapping.PropertyValue("$("
                         + columnTitle + ")")));
+
+                if (column.getRelatedTo() != null) {
+                    poList.add(new YamlMapping.PredicateObject("s4agri:isLocatedIn", new YamlMapping.PropertyValue(
+                            column.getRelationShip() + "/$(" + column.getRelatedTo()
+                                    .replaceAll("[(]", "\\\\(")
+                                    .replaceAll("[)]", "\\\\)") + ")", "iri")));
+                }
 
                 yamlMappingsMap.setPo(poList);
                 mappings.put(column.getTitle().toLowerCase().replaceAll("[\\s()]", ""), yamlMappingsMap);

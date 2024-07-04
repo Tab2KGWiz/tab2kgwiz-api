@@ -41,7 +41,7 @@ public class ColumnController {
 
     @RequestMapping(value = "/columns/{id}", method = RequestMethod.GET)
     public @ResponseBody PersistentEntityResource getColumn(PersistentEntityResourceAssembler resourceAssembler,
-                                                             @PathVariable Long id) {
+                                                            @PathVariable Long id) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
@@ -183,18 +183,52 @@ public class ColumnController {
         try {
             Column result = columnRepository.findById(columnId)
                     .map(existentColumn -> {
-                        existentColumn.setDataType(column.getDataType());
-                        existentColumn.setSubjectOntology(column.getSubjectOntology());
-                        existentColumn.setRelatesToProperty(column.getRelatesToProperty());
-                        existentColumn.setHasUnit(column.getHasUnit());
-                        existentColumn.setHasTimestamp(column.getHasTimestamp());
-                        existentColumn.setMeasurementMadeBy(column.getMeasurementMadeBy());
+                        if (column.getTitle() != null) {
+                            existentColumn.setTitle(column.getTitle());
+                        }
+                        if (column.getDataType() != null) {
+                            existentColumn.setDataType(column.getDataType());
+                        }
+                        if (column.getRelatesToProperty() != null) {
+                            existentColumn.setRelatesToProperty(column.getRelatesToProperty());
+                        }
+                        if (column.getHasUnit() != null) {
+                            existentColumn.setHasUnit(column.getHasUnit());
+                        }
+                        if (column.getHasTimestamp() != null) {
+                            existentColumn.setHasTimestamp(column.getHasTimestamp());
+                        }
+                        if (column.getMeasurementMadeBy() != null) {
+                            existentColumn.setMeasurementMadeBy(column.getMeasurementMadeBy());
+                        }
+
                         existentColumn.setIdentifier(column.isIdentifier());
                         existentColumn.setMeasurement(column.isMeasurement());
-                        existentColumn.setOntologyType(column.getOntologyType());
-                        existentColumn.setOntologyURI(column.getOntologyURI());
-                        existentColumn.setLabel(column.getLabel());
-                        existentColumn.setPrefix(column.getPrefix());
+                        if (column.getOntologyType() != null) {
+                            existentColumn.setOntologyType(column.getOntologyType());
+                        }
+                        if (column.getOntologyURI() != null) {
+                            existentColumn.setOntologyURI(column.getOntologyURI());
+                        }
+                        if (column.getLabel() != null) {
+                            existentColumn.setLabel(column.getLabel());
+                        }
+                        if (column.getPrefix() != null) {
+                            existentColumn.setPrefix(column.getPrefix());
+                        }
+                        if (column.getIsMeasurementOf() != null) {
+                            existentColumn.setIsMeasurementOf(column.getIsMeasurementOf());
+                        }
+                        if (column.getHasValue() != null) {
+                            existentColumn.setHasValue(column.getHasValue());
+                        }
+                        if (column.getRelatedTo() != null) {
+                            existentColumn.setRelatedTo(column.getRelatedTo());
+                        }
+                        if (column.getRelationShip() != null) {
+                            existentColumn.setRelationShip(column.getRelationShip());
+                        }
+
                         return columnRepository.save(existentColumn);
                     })
                     .orElseGet(() -> {
