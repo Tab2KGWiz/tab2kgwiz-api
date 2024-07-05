@@ -53,41 +53,11 @@ public class YamlController {
             throw new NotAuthorizedException();
         }
 
-        Mapping mainMapping = mappingRepository.findById(id).get();
-        List<Column> mainColumns = mainMapping.getColumns();
-
-        Set<String> mainColumnDataTypes = mainColumns.stream()
-                .map(Column::getDataType)
-                .collect(Collectors.toSet());
-        Set<String> mainColumnOntologies = mainColumns.stream()
-                .map(Column::getOntologyType)
-                .collect(Collectors.toSet());
-
-        Stream<Mapping> comparedMappings = mappingRepository.findByProvidedBy(supplier)
-                .stream()
-                .filter(m -> !Objects.equals(m.getId(), id) && m.getYamlFile() != null);
-
-        Iterable<Mapping> mappings = comparedMappings.collect(Collectors.toList());
-
-        for (Mapping m : mappings) {
-            if (!Objects.equals(m.getId(), id) && m.getYamlFile() != null) {
-                Set<String> columnDataTypes = m.getColumns().stream().map(Column::getDataType).collect(Collectors.toSet());
-                Set<String> columnOntologies = m.getColumns().stream().map(Column::getOntologyType).collect(Collectors.toSet());
-
-                if (mainColumnDataTypes.equals(columnDataTypes) && mainColumnOntologies.equals(columnOntologies)) {
-                    mainMapping.setYamlFile(m.getYamlFile());
-                    mappingRepository.save(mainMapping);
-                    return ResponseEntity.ok().body("There is already a mapping with the same columns");
-                }
-            }
-        }
-
         Mapping mapping = mappingRepository.findById(id).get();
 
         try {
             yamlGenerator.generateYaml(mappingRepository, columnRepository, mapping);
             return ResponseEntity.ok().body(mapping.getYamlFile());
-//            return ResponseEntity.ok().body("Yaml file generated successfully");
         } catch (IOException e) {
             return ResponseEntity.badRequest().body("Error generating the Yaml file");
         }
