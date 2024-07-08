@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -32,117 +31,66 @@ import org.springframework.web.multipart.MultipartFile;
 @RepositoryRestController
 public class MappingController {
     private final MappingRepository mappingRepository;
-
-    private SupplierRepository supplierRepository;
+    private final SupplierRepository supplierRepository;
+    private static final String DEFAULT_PREFIXES = "https://saref.etsi.org/core/,https://ai4pork.angliru.udl.cat/schauer/,https://ai4pork.angliru.udl.cat/,https://saref.etsi.org/saref4agri/,https://saref.etsi.org/saref4city/,https://saref.etsi.org/saref4auto/,http://www.ontology-of-units-of-measure.org/resource/om-2/,http://www.w3.org/2006/time#,http://www.w3.org/2000/01/rdf-schema#,http://www.w3.org/2001/XMLSchema#";
 
     public MappingController(MappingRepository mappingRepository, SupplierRepository supplierRepository) {
         this.mappingRepository = mappingRepository;
         this.supplierRepository = supplierRepository;
     }
 
-    @RequestMapping(value = "/mappings/{id}", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<Mapping> getMapping(PersistentEntityResourceAssembler resourceAssembler,
-                                                            @PathVariable Long id) {
+    private Supplier getAuthenticatedSupplier() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
             throw new NotAuthorizedException();
         }
-
         BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
-        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
-        Optional<Mapping> mapping = mappingRepository.findById(id);
+        return supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
+    }
 
-        if (mapping.isEmpty()) {
-            throw new NotFoundException();
-        }
-
-        Mapping m = mapping.get();
-
-        if (m.getProvidedBy().getId() == null) {
-            throw new NotFoundException();
-        }
-
-        if (m.isAccessible() || m.getProvidedBy().getId().equals(supplier.getId())) {
-            return new ResponseEntity<>(m, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    private void validateMappingOwnership(Mapping mapping, Supplier supplier) {
+        if (!mapping.isAccessible()) {
+            assert mapping.getProvidedBy().getId() != null;
+            if (!mapping.getProvidedBy().getId().equals(supplier.getId())) {
+                throw new NotAuthorizedException();
+            }
         }
     }
 
-    @RequestMapping(value = "/mappings", method = RequestMethod.POST)
+    @RequestMapping(value = "/mappings/{id}", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<Mapping> getMapping(@PathVariable Long id) {
+        Supplier supplier = getAuthenticatedSupplier();
+        Mapping mapping = mappingRepository.findById(id).orElseThrow(NotFoundException::new);
+        validateMappingOwnership(mapping, supplier);
+        return ResponseEntity.ok(mapping);
+    }
+
+    @PostMapping("/mappings")
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody PersistentEntityResource createMapping(PersistentEntityResourceAssembler resourceAssembler,
                                                                 @RequestBody Mapping mapping) throws MethodArgumentNotValidException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new NotAuthorizedException();
-        }
-
-        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
-
-        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
-
+        Supplier supplier = getAuthenticatedSupplier();
         mapping.setProvidedBy(supplier);
-
-        //mapping.setPrefixesURIS("http://dbpedia.org/ontology/,http://schema.org/");
-        //String defaultPrefixes = "https://saref.etsi.org/core/,https://ai4pork.angliru.udl.cat/schauer/,https://ai4pork.angliru.udl.cat/,https://saref.etsi.org/saref4agri/,https://saref.etsi.org/saref4city/,https://saref.etsi.org/saref4auto/,http://www.ontology-of-units-of-measure.org/resource/om-2/,http://www.w3.org/2006/time#,http://www.w3.org/2000/01/rdf-schema#,http://www.w3.org/2001/XMLSchema#";
-        //mapping.setPrefixesURIS(defaultPrefixes);
-
         try {
             mapping = mappingRepository.save(mapping);
-
         } catch (Exception e) {
             throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(mapping, "mapping"));
         }
-
         return resourceAssembler.toFullResource(mapping);
     }
 
     @RequestMapping(value = "/mappings/{id}/generate", method = RequestMethod.POST)
     public ResponseEntity<String> generateMappingLinkedData(@PathVariable Long id,
-                                            @RequestParam("csvFile") MultipartFile csvFile) throws IOException {
+                                                            @RequestParam("csvFile") MultipartFile csvFile) throws IOException {
 
-        Optional<Mapping> mapping = mappingRepository.findById(id);
+        Mapping mapping = mappingRepository.findById(id).orElseThrow(() -> new NotFoundException("Mapping not found."));
 
-        if (mapping.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
-        }
-
-        // Authorization logic
-        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        //String currentSupplierUsername = authentication.getName();
-        //if (!mapping.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
-        //    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to generate linked data for this mapping.");
-        //}
-
-        String content = mapping.get().getYamlFile();
-
-        File yamlFile = File.createTempFile("temp", ".yaml");
-        FileWriter yamlWriter = new FileWriter(yamlFile);
-        yamlWriter.write(content);
-        yamlWriter.close();
-
-        File csvContent = File.createTempFile("temp", ".csv");
-        csvFile.transferTo(csvContent);
-
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("csvFile", new FileSystemResource(csvContent));
-        body.add("yamlFile", new FileSystemResource(yamlFile));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        String serverUrl = "http://104.248.240.80:8081/generateLinkedData";
-
-        RestTemplate restTemplate = new RestTemplate();
+        File yamlFile = createTempFile(mapping.getYamlFile());
+        File csvContent = createTempFileFromMultipart(csvFile);
 
         try {
             // Send POST request and handle potential exceptions
-            ResponseEntity<String> response = restTemplate.postForEntity(serverUrl, requestEntity, String.class);
-
+            ResponseEntity<String> response = sendPostRequest(yamlFile, csvContent);
             return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
         } catch (RestClientResponseException e) {
             // Handle error from the server (e.g., return appropriate HTTP status code)
@@ -151,107 +99,88 @@ public class MappingController {
             // Handle other exceptions during communication
             return ResponseEntity.internalServerError().body("Error generating linked data: " + e.getMessage());
         } finally {
-            // Clean up temporary files
-            if (yamlFile.exists()) {
-                yamlFile.delete();
-            }
-            if (csvContent.exists()) {
-                csvContent.delete();
-            }
+            yamlFile.delete();
+            csvContent.delete();
         }
     }
 
-//    @RequestMapping(value = "/mappings/{id}/columns", method = RequestMethod.GET)
-//    public ResponseEntity<String> getColumnsByMapping(@PathVariable Long id) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String currentSupplierUsername = authentication.getName();
-//
-//        Optional<Mapping> mapping = mappingRepository.findById(id);
-//
-//        if (mapping.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
-//        }
-//
-//        if (!mapping.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to get the columns of this mapping.");
-//        }
-//        mapping.get().getColumns();
-//
-//        return;
-//    }
-
-
-    @RequestMapping(value = "/mappings/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<String> deleteMapping(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentSupplierUsername = authentication.getName();
-
-        Optional<Mapping> mapping = mappingRepository.findById(id);
-
-        if (mapping.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
+    private File createTempFile(String content) throws IOException {
+        File file = File.createTempFile("temp", ".yaml");
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(content);
         }
+        return file;
+    }
 
-        if (!mapping.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
+    private File createTempFileFromMultipart(MultipartFile file) throws IOException {
+        File tempFile = File.createTempFile("temp", ".csv");
+        file.transferTo(tempFile);
+        return tempFile;
+    }
+
+    private ResponseEntity<String> sendPostRequest(File yamlFile, File csvContent) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("csvFile", new FileSystemResource(csvContent));
+        body.add("yamlFile", new FileSystemResource(yamlFile));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        String serverUrl = "http://104.248.240.80:8081/generateLinkedData";
+
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.postForEntity(serverUrl, requestEntity, String.class);
+    }
+
+    @DeleteMapping("/mappings/{id}")
+    public ResponseEntity<String> deleteMapping(@PathVariable Long id) {
+        Supplier supplier = getAuthenticatedSupplier();
+        Mapping mapping = mappingRepository.findById(id).orElseThrow(() -> new NotFoundException("Mapping not found."));
+
+        if (!mapping.getProvidedBy().getUsername().equals(supplier.getUsername())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to delete this mapping.");
         }
 
-        mappingRepository.delete(mapping.get());
+        mappingRepository.delete(mapping);
         return ResponseEntity.ok("Mapping deleted successfully.");
     }
 
 
-    @RequestMapping(value = "/mappings/{id}", method = RequestMethod.PATCH)
+    @PatchMapping("/mappings/{id}")
     public ResponseEntity<String> updateMapping(@PathVariable Long id, @RequestBody Mapping mapping) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentSupplierUsername = authentication.getName();
+        Supplier supplier = getAuthenticatedSupplier();
+        Mapping existingMapping = mappingRepository.findById(id).orElseThrow(() -> new NotFoundException("Mapping not found."));
 
-        Optional<Mapping> mappingOptional = mappingRepository.findById(id);
-
-        if (mappingOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mapping not found.");
-        }
-
-        if (!mappingOptional.get().getProvidedBy().getUsername().equals(currentSupplierUsername)) {
+        if (!existingMapping.getProvidedBy().getUsername().equals(supplier.getUsername())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to update this mapping.");
         }
 
-        Mapping existingMapping = mappingOptional.get();
-        existingMapping.setAccessible(mapping.isAccessible());
-        existingMapping.setTitle(mapping.getTitle());
-
-        if (!(mapping.getPrefixesURIS() == null)) {
-            existingMapping.setPrefixesURIS(mapping.getPrefixesURIS());
-
-        } else if (existingMapping.getPrefixesURIS() == null) {
-            String defaultPrefixes = "https://saref.etsi.org/core/,https://ai4pork.angliru.udl.cat/schauer/,https://ai4pork.angliru.udl.cat/,https://saref.etsi.org/saref4agri/,https://saref.etsi.org/saref4city/,https://saref.etsi.org/saref4auto/,http://www.ontology-of-units-of-measure.org/resource/om-2/,http://www.w3.org/2006/time#,http://www.w3.org/2000/01/rdf-schema#,http://www.w3.org/2001/XMLSchema#";
-            existingMapping.setPrefixesURIS(defaultPrefixes);
-        }
-
+        updateMappingDetails(existingMapping, mapping);
         mappingRepository.save(existingMapping);
         return ResponseEntity.ok("Mapping updated successfully.");
     }
 
-
-    @RequestMapping(value = "/mappings", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<List<Mapping>> getAllMappings() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new NotAuthorizedException();
+    private void updateMappingDetails(Mapping existingMapping, Mapping newMapping) {
+        existingMapping.setAccessible(newMapping.isAccessible());
+        existingMapping.setTitle(newMapping.getTitle());
+        if (newMapping.getPrefixesURIS() != null) {
+            existingMapping.setPrefixesURIS(newMapping.getPrefixesURIS());
+        } else if (existingMapping.getPrefixesURIS() == null) {
+            existingMapping.setPrefixesURIS(DEFAULT_PREFIXES);
         }
+    }
 
-        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
-        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
 
+    @GetMapping("/mappings")
+    public @ResponseBody ResponseEntity<List<Mapping>> getAllMappings() {
+        Supplier supplier = getAuthenticatedSupplier();
         List<Mapping> mappings = mappingRepository.findByProvidedBy(supplier);
-
-        // List of mappings that are public and not provided by the current supplier
         mappings.addAll(mappingRepository.findByIsAccessibleTrueAndProvidedByNot(supplier));
 
         if (mappings.isEmpty()) {
             throw new NotFoundException();
         }
-        return new ResponseEntity<>(mappings, HttpStatus.OK);
+        return ResponseEntity.ok(mappings);
     }
 }
