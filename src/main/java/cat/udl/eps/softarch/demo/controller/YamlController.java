@@ -1,28 +1,18 @@
 package cat.udl.eps.softarch.demo.controller;
 
-import cat.udl.eps.softarch.demo.domain.Column;
 import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.domain.Supplier;
 import cat.udl.eps.softarch.demo.exception.NotAuthorizedException;
 import cat.udl.eps.softarch.demo.repository.ColumnRepository;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
 import cat.udl.eps.softarch.demo.utils.YamlGenerator;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-//@RequestMapping("/home/yaml")
 @RestController
 public class YamlController {
 
