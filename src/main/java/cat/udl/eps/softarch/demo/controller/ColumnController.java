@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @RepositoryRestController
 public class ColumnController {
@@ -39,204 +37,122 @@ public class ColumnController {
         this.supplierRepository = supplierRepository;
     }
 
-    @RequestMapping(value = "/columns/{id}", method = RequestMethod.GET)
-    public @ResponseBody PersistentEntityResource getColumn(PersistentEntityResourceAssembler resourceAssembler,
-                                                            @PathVariable Long id) {
-
+    private Supplier getAuthenticatedSupplier() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof AnonymousAuthenticationToken) {
             throw new NotAuthorizedException();
         }
-
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<Column> column = columnRepository.findById(id);
-
-        if (column.isEmpty()) {
-            throw new NotFoundException();
-        }
-
-        Column col = column.get();
-        assert col.getColumnBelongsTo().getId() != null;
-        Optional<Mapping> mappingBelongs = mappingRepository.findById(col.getColumnBelongsTo().getId());
-
-        if (mappingBelongs.isPresent() && Objects.equals(mappingBelongs.get().getProvidedBy().getId(), user.getId())) {
-            return resourceAssembler.toFullResource(col);
-        } else {
-            throw new NotAuthorizedException();
-        }
+        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
+        return supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
     }
 
-    @RequestMapping(value = "/mappings/{id}/columns", method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<List<Column>> getColumns(@PathVariable Long id) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new NotAuthorizedException();
-        }
-
-        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
-
-        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
-        Optional<Mapping> mapping = mappingRepository.findById(id);
-
-        if (mapping.isEmpty()) {
-            throw new NotFoundException();
-        }
-
-        Mapping map = mapping.get();
-        assert map.getProvidedBy().getId() != null;
-
-        //columnRepository.findByColumnBelongsTo(map)
-
-        if (Objects.equals(map.getProvidedBy().getId(), supplier.getId())) {
-            return new ResponseEntity<>(map.getColumns(), HttpStatus.OK);
-        } else {
-            throw new NotAuthorizedException();
-        }
-    }
-
-    @RequestMapping(value = "/mappings/{id}/columns", method = RequestMethod.POST)
-    public @ResponseBody PersistentEntityResource createColumn(PersistentEntityResourceAssembler resourceAssembler,
-                                                               @PathVariable Long id,
-                                                               @RequestBody Column column) throws MethodArgumentNotValidException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new NotAuthorizedException();
-        }
-
-        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
-
-        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
-
-        if (mappingRepository.findById(id).isEmpty()) {
-            throw new NotFoundException();
-        }
-
-        Mapping mapping = mappingRepository.findById(id).get();
-
+    private Mapping getMapping(Long id, Supplier supplier) {
+        Mapping mapping = mappingRepository.findById(id).orElseThrow(NotFoundException::new);
         if (!Objects.equals(mapping.getProvidedBy().getId(), supplier.getId())) {
             throw new NotAuthorizedException();
         }
+        return mapping;
+    }
 
+    @GetMapping("/columns/{id}")
+    public @ResponseBody PersistentEntityResource getColumn(PersistentEntityResourceAssembler resourceAssembler, @PathVariable Long id) {
+        Supplier supplier = getAuthenticatedSupplier();
+        Column column = columnRepository.findById(id).orElseThrow(NotFoundException::new);
+        assert column.getColumnBelongsTo().getId() != null;
+        Mapping mapping = getMapping(column.getColumnBelongsTo().getId(), supplier);
+        return resourceAssembler.toFullResource(column);
+    }
+
+    @GetMapping("/mappings/{id}/columns")
+    public @ResponseBody ResponseEntity<List<Column>> getColumns(@PathVariable Long id) {
+        Supplier supplier = getAuthenticatedSupplier();
+        Mapping mapping = getMapping(id, supplier);
+        return new ResponseEntity<>(mapping.getColumns(), HttpStatus.OK);
+    }
+
+    @PostMapping("/mappings/{id}/columns")
+    public @ResponseBody PersistentEntityResource createColumn(PersistentEntityResourceAssembler resourceAssembler,
+                                                               @PathVariable Long id, @RequestBody Column column) throws MethodArgumentNotValidException {
+        Supplier supplier = getAuthenticatedSupplier();
+        Mapping mapping = getMapping(id, supplier);
         column.setColumnBelongsTo(mapping);
-        column.setOntologyURI("http://dbpedia.org/ontology/");
 
         try {
             column = columnRepository.save(column);
         } catch (Exception e) {
             throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(column, "column"));
         }
-
         return resourceAssembler.toFullResource(column);
     }
 
-    @RequestMapping(value = "/columns/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping("/columns/{id}")
     public ResponseEntity<String> deleteColumns(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentSupplierUsername = authentication.getName();
-        Supplier currentSupplier = supplierRepository.findByUsernameContaining(currentSupplierUsername).get(0);
-
-        Optional<Column> column = columnRepository.findById(id);
-
-        if (column.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Column not found.");
-        }
-
-        Column col = column.get();
-        assert col.getColumnBelongsTo().getId() != null;
-        Optional<Mapping> mappingBelongs = mappingRepository.findById(col.getColumnBelongsTo().getId());
-
-        if (mappingBelongs.isPresent() && Objects.equals(mappingBelongs.get().getProvidedBy().getId(), currentSupplier.getId())) {
-            columnRepository.delete(col);
-            return ResponseEntity.ok("Column deleted successfully.");
-        } else {
-            throw new NotAuthorizedException();
-        }
+        Supplier supplier = getAuthenticatedSupplier();
+        Column column = columnRepository.findById(id).orElseThrow(NotFoundException::new);
+        Mapping mapping = getMapping(column.getColumnBelongsTo().getId(), supplier);
+        columnRepository.delete(column);
+        return ResponseEntity.ok("Column deleted successfully.");
     }
 
 
-    @RequestMapping(value = "/mappings/{id}/columns/{columnId}", method = RequestMethod.PUT)
+    @PutMapping("/mappings/{id}/columns/{columnId}")
     public @ResponseBody PersistentEntityResource updateColumn(PersistentEntityResourceAssembler resourceAssembler,
-                                                               @PathVariable Long id,
-                                                               @PathVariable Long columnId,
-                                                               @RequestBody Column column) throws MethodArgumentNotValidException {
+                                                               @PathVariable Long id, @PathVariable Long columnId, @RequestBody Column column) throws MethodArgumentNotValidException {
+        Supplier supplier = getAuthenticatedSupplier();
+        Mapping mapping = getMapping(id, supplier);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new NotAuthorizedException();
+        Column updatedColumn = columnRepository.findById(columnId).map(existingColumn -> {
+            updateColumnDetails(existingColumn, column);
+            return columnRepository.save(existingColumn);
+        }).orElseGet(() -> {
+            column.setColumnBelongsTo(mapping);
+            return columnRepository.save(column);
+        });
+
+        return resourceAssembler.toFullResource(updatedColumn);
+    }
+
+    private void updateColumnDetails(Column existingColumn, Column column) {
+        if (column.getTitle() != null) {
+            existingColumn.setTitle(column.getTitle());
         }
-
-        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
-
-        Supplier supplier = supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
-
-        if (mappingRepository.findById(id).isEmpty()) {
-            throw new NotFoundException();
+        if (column.getDataType() != null) {
+            existingColumn.setDataType(column.getDataType());
         }
-
-        Mapping mapping = mappingRepository.findById(id).get();
-
-        if (!Objects.equals(mapping.getProvidedBy().getId(), supplier.getId())) {
-            throw new NotAuthorizedException();
+        if (column.getRelatesToProperty() != null) {
+            existingColumn.setRelatesToProperty(column.getRelatesToProperty());
         }
-
-        try {
-            Column result = columnRepository.findById(columnId)
-                    .map(existentColumn -> {
-                        if (column.getTitle() != null) {
-                            existentColumn.setTitle(column.getTitle());
-                        }
-                        if (column.getDataType() != null) {
-                            existentColumn.setDataType(column.getDataType());
-                        }
-                        if (column.getRelatesToProperty() != null) {
-                            existentColumn.setRelatesToProperty(column.getRelatesToProperty());
-                        }
-                        if (column.getHasUnit() != null) {
-                            existentColumn.setHasUnit(column.getHasUnit());
-                        }
-                        if (column.getHasTimestamp() != null) {
-                            existentColumn.setHasTimestamp(column.getHasTimestamp());
-                        }
-                        if (column.getMeasurementMadeBy() != null) {
-                            existentColumn.setMeasurementMadeBy(column.getMeasurementMadeBy());
-                        }
-
-                        existentColumn.setIdentifier(column.isIdentifier());
-                        existentColumn.setMeasurement(column.isMeasurement());
-                        if (column.getOntologyType() != null) {
-                            existentColumn.setOntologyType(column.getOntologyType());
-                        }
-                        if (column.getOntologyURI() != null) {
-                            existentColumn.setOntologyURI(column.getOntologyURI());
-                        }
-                        if (column.getLabel() != null) {
-                            existentColumn.setLabel(column.getLabel());
-                        }
-                        if (column.getPrefix() != null) {
-                            existentColumn.setPrefix(column.getPrefix());
-                        }
-                        if (column.getIsMeasurementOf() != null) {
-                            existentColumn.setIsMeasurementOf(column.getIsMeasurementOf());
-                        }
-                        if (column.getRelatedTo() != null) {
-                            existentColumn.setRelatedTo(column.getRelatedTo());
-                        }
-                        if (column.getRelationShip() != null) {
-                            existentColumn.setRelationShip(column.getRelationShip());
-                        }
-
-                        return columnRepository.save(existentColumn);
-                    })
-                    .orElseGet(() -> {
-                        column.setColumnBelongsTo(mapping);
-                        return columnRepository.save(column);
-                    });
-
-            return resourceAssembler.toFullResource(result);
-        } catch (Exception e) {
-            throw new MethodArgumentNotValidException(null, new BeanPropertyBindingResult(column, "column"));
+        if (column.getHasUnit() != null) {
+            existingColumn.setHasUnit(column.getHasUnit());
         }
-
+        if (column.getHasTimestamp() != null) {
+            existingColumn.setHasTimestamp(column.getHasTimestamp());
+        }
+        if (column.getMeasurementMadeBy() != null) {
+            existingColumn.setMeasurementMadeBy(column.getMeasurementMadeBy());
+        }
+        existingColumn.setIdentifier(column.isIdentifier());
+        existingColumn.setMeasurement(column.isMeasurement());
+        if (column.getOntologyType() != null) {
+            existingColumn.setOntologyType(column.getOntologyType());
+        }
+        if (column.getOntologyURI() != null) {
+            existingColumn.setOntologyURI(column.getOntologyURI());
+        }
+        if (column.getLabel() != null) {
+            existingColumn.setLabel(column.getLabel());
+        }
+        if (column.getPrefix() != null) {
+            existingColumn.setPrefix(column.getPrefix());
+        }
+        if (column.getIsMeasurementOf() != null) {
+            existingColumn.setIsMeasurementOf(column.getIsMeasurementOf());
+        }
+        if (column.getRelatedTo() != null) {
+            existingColumn.setRelatedTo(column.getRelatedTo());
+        }
+        if (column.getRelationShip() != null) {
+            existingColumn.setRelationShip(column.getRelationShip());
+        }
     }
 }
