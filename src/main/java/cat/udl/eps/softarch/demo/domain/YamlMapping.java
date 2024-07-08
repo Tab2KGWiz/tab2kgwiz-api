@@ -4,19 +4,21 @@ import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.OneToOne;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.Map;
 
 @Setter
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class YamlMapping {
 
     @JsonProperty
     private Map<String, String> prefixes;
+
     @JsonProperty
     private Map<String, Mappings> mappings;
 
@@ -26,6 +28,8 @@ public class YamlMapping {
 
     @Setter
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Mappings {
         @JsonProperty
@@ -33,40 +37,42 @@ public class YamlMapping {
 
         @JsonProperty
         private String s;
+
         @JsonProperty
         private List<PredicateObject> po;
+    }
 
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class PredicateObject {
+        @JsonProperty
+        private String p;
+
+        @JsonProperty
+        private PropertyValue o;
     }
 
     @Setter
     @Getter
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class PredicateObject {
-        @JsonProperty
-        private String p;
-        @JsonProperty
-        private PropertyValue o;
-
-        public PredicateObject(String a, PropertyValue propertyValue) {
-            this.p = a;
-            this.o = propertyValue;
-        }
-    }
-
-    @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class PropertyValue {
-        @Setter
         @JsonProperty
         private String value;
 
-        @Setter
         @JsonProperty
         private String datatype;
 
-        @Setter
         @JsonProperty
         private String type;
+
+        public PropertyValue(String value, String type, String datatype) {
+            this.value = value;
+            this.type = type;
+            this.datatype = datatype;
+        }
 
         public PropertyValue(String value, String type) {
             this.value = value;
@@ -78,20 +84,18 @@ public class YamlMapping {
         }
 
         public PropertyValue() {}
-
     }
 
     @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Sources {
         @JsonProperty
         private String access;
+
         @JsonProperty
         private String referenceFormulation;
-
-        public Sources(String s, String fileFormat) {
-            this.access = s;
-            this.referenceFormulation = fileFormat;
-        }
     }
 }
