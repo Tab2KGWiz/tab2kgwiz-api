@@ -83,7 +83,8 @@ public class YamlMapping {
             this.value = value;
         }
 
-        public PropertyValue() {}
+        public PropertyValue() {
+        }
     }
 
     @Setter
