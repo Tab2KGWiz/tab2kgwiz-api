@@ -1,7 +1,6 @@
 package cat.udl.eps.softarch.demo.config;
 
 import cat.udl.eps.softarch.demo.domain.User;
-import cat.udl.eps.softarch.demo.filter.AuthTokenFilter;
 import cat.udl.eps.softarch.demo.repository.SupplierRepository;
 import cat.udl.eps.softarch.demo.domain.Supplier;
 import cat.udl.eps.softarch.demo.repository.UserRepository;
@@ -13,7 +12,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
