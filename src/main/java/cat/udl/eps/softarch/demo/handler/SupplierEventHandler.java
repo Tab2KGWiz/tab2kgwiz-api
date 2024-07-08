@@ -19,6 +19,10 @@ public class SupplierEventHandler {
     @HandleBeforeDelete
     public void handleSupplierPreDelete(Supplier supplier) {
         logger.info("Before delete: {}", supplier.toString());
+        checkAuthentication(supplier);
+    }
+
+    private void checkAuthentication(Supplier supplier) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         logger.info("Username: {}", authentication.getAuthorities());
 
@@ -36,17 +40,6 @@ public class SupplierEventHandler {
     @HandleBeforeSave
     public void handleSupplierPreUpdate(Supplier supplier) {
         logger.info("Before save: {}", supplier.toString());
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        logger.info("Username: {}", authentication.getAuthorities());
-
-        Supplier curr_supplier = ((Supplier)authentication.getPrincipal());
-
-        if (curr_supplier.getId() == null) {
-            throw new ForbiddenException();
-        }
-
-        if (!curr_supplier.getId().equals(supplier.getId())){
-            throw new ForbiddenException();
-        }
+        checkAuthentication(supplier);
     }
 }
