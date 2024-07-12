@@ -77,7 +77,7 @@ public class YamlGenerator {
 
         if (column.getRelatedTo() != null) {
             poList.add(new YamlMapping.PredicateObject("s4agri:isLocatedIn", new YamlMapping.PropertyValue(
-                    column.getRelationShip() + "/$(" + escapeColumnTitle(column.getRelatedTo()) + ")", "iri")));
+                    BASE + ":$(" + escapeColumnTitle(column.getRelatedTo()) + ")", "iri")));
         }
 
         yamlMappingsMap.setPo(poList);
