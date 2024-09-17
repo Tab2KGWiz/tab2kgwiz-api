@@ -118,7 +118,7 @@ public class MappingController {
         return tempFile;
     }
 
-    private ResponseEntity<String> sendPostRequest(File yamlFile, File csvContent) {
+        private ResponseEntity<String> sendPostRequest(File yamlFile, File csvContent) {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("csvFile", new FileSystemResource(csvContent));
         body.add("yamlFile", new FileSystemResource(yamlFile));

@@ -34,8 +34,6 @@ public class Column extends UriEntity<Long> {
 
     private boolean isIdentifier;
 
-    private String relatesToProperty;
-
     private String hasUnit;
 
     private String hasTimestamp;
@@ -67,7 +65,6 @@ public class Column extends UriEntity<Long> {
                 ", ontologyType='" + ontologyType + '\'' +
                 ", isMeasurement=" + isMeasurement + '\'' +
                 ", isIdentifier=" + isIdentifier + '\'' +
-                ", relatesToProperty='" + relatesToProperty + '\'' +
                 ", hasUnit='" + hasUnit + '\'' +
                 ", hasTimestamp='" + hasTimestamp + '\'' +
                 ", measurementMadeBy='" + measurementMadeBy + '\'' +
