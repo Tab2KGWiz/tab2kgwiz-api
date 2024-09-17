@@ -97,9 +97,14 @@ public class ColumnController {
 
     @PutMapping("/mappings/{id}/columns/{columnId}")
     public @ResponseBody PersistentEntityResource updateColumn(PersistentEntityResourceAssembler resourceAssembler,
-                                                               @PathVariable Long id, @PathVariable Long columnId, @RequestBody Column column) throws MethodArgumentNotValidException {
+                                                               @PathVariable Long id, @PathVariable Long columnId,
+                                                               @RequestBody Column column) throws MethodArgumentNotValidException {
         Supplier supplier = getAuthenticatedSupplier();
         Mapping mapping = getMapping(id, supplier);
+
+        if (column.getOntologyType() != null && !column.getOntologyType().contains(":")) {
+            column.setOntologyType("base:" + column.getOntologyType());
+        }
 
         Column updatedColumn = columnRepository.findById(columnId).map(existingColumn -> {
             updateColumnDetails(existingColumn, column);
@@ -118,9 +123,6 @@ public class ColumnController {
         }
         if (column.getDataType() != null) {
             existingColumn.setDataType(column.getDataType());
-        }
-        if (column.getRelatesToProperty() != null) {
-            existingColumn.setRelatesToProperty(column.getRelatesToProperty());
         }
         if (column.getHasUnit() != null) {
             existingColumn.setHasUnit(column.getHasUnit());
