@@ -2,6 +2,12 @@
 
 Tab2KGwiz is a Java Spring Boot application designed to transform tabular data into structured knowledge graphs (KGs). The tool leverages a robust Spring Boot backend to process and convert tabular data into RDF format.
 
+## Documentation (Guide)
+
+This project is part of the **TFG** (Trabajo de Fin de Grado) by **Zihan Chen** at the **Universidad de Lleida**. The project aims to provide a user-friendly interface for transforming tabular data into knowledge graphs.
+
+Chen, Z. (2024). [Asistente para la transformación de datos tabulares a Grafos de Conocimiento](https://repositori.udl.cat/items/20ea8d13-c336-46d2-af4b-cb3379931bcf). Guía de la aplicación.
+
 ## Features
 
 - **Tabular Data to Knowledge Graph Conversion**: Converts tabular data (e.g., CSV, JSON) into RDF.
