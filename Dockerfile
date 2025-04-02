@@ -1,8 +1,9 @@
-FROM ibm-semeru-runtimes:open-17-jre-focal
+FROM openjdk:17-jdk-slim
 
-WORKDIR /home/app
+WORKDIR /app
 
-ADD ./target/*.jar ./app.jar
+COPY target/tab2kgwiz-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
-CMD java $JAVA_OPTS -Dspring.profiles.active=$PROFILE -jar app.jar
+
+CMD ["java", "-jar", "app.jar"]

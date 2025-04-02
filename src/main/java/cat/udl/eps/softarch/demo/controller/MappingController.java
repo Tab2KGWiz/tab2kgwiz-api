@@ -1,20 +1,17 @@
 package cat.udl.eps.softarch.demo.controller;
 
-import cat.udl.eps.softarch.demo.config.BasicUserDetailsImpl;
 import cat.udl.eps.softarch.demo.domain.Mapping;
 import cat.udl.eps.softarch.demo.domain.Supplier;
 import cat.udl.eps.softarch.demo.exception.NotAuthorizedException;
 import cat.udl.eps.softarch.demo.exception.NotFoundException;
 import cat.udl.eps.softarch.demo.repository.MappingRepository;
 import cat.udl.eps.softarch.demo.repository.SupplierRepository;
+import cat.udl.eps.softarch.demo.service.SupplierAuthService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.data.rest.webmvc.PersistentEntityResource;
 import org.springframework.data.rest.webmvc.PersistentEntityResourceAssembler;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -32,20 +29,14 @@ import org.springframework.web.multipart.MultipartFile;
 public class MappingController {
     private final MappingRepository mappingRepository;
     private final SupplierRepository supplierRepository;
+    private final SupplierAuthService supplierAuthService;
     private static final String DEFAULT_PREFIXES = "https://saref.etsi.org/core/,https://ai4pork.angliru.udl.cat/schauer/,https://ai4pork.angliru.udl.cat/,https://saref.etsi.org/saref4agri/,https://saref.etsi.org/saref4city/,https://saref.etsi.org/saref4auto/,http://www.ontology-of-units-of-measure.org/resource/om-2/,http://www.w3.org/2006/time#,http://www.w3.org/2000/01/rdf-schema#,http://www.w3.org/2001/XMLSchema#";
 
-    public MappingController(MappingRepository mappingRepository, SupplierRepository supplierRepository) {
+    public MappingController(MappingRepository mappingRepository, SupplierRepository supplierRepository,
+                             SupplierAuthService supplierAuthService) {
         this.mappingRepository = mappingRepository;
         this.supplierRepository = supplierRepository;
-    }
-
-    private Supplier getAuthenticatedSupplier() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new NotAuthorizedException();
-        }
-        BasicUserDetailsImpl userPrincipal = (BasicUserDetailsImpl) authentication.getPrincipal();
-        return supplierRepository.findById(userPrincipal.getId()).orElseThrow(NotFoundException::new);
+        this.supplierAuthService = supplierAuthService;
     }
 
     private void validateMappingOwnership(Mapping mapping, Supplier supplier) {
@@ -59,7 +50,7 @@ public class MappingController {
 
     @RequestMapping(value = "/mappings/{id}", method = RequestMethod.GET)
     public @ResponseBody ResponseEntity<Mapping> getMapping(@PathVariable Long id) {
-        Supplier supplier = getAuthenticatedSupplier();
+        Supplier supplier = supplierAuthService.getAuthenticatedSupplier();
         Mapping mapping = mappingRepository.findById(id).orElseThrow(NotFoundException::new);
         validateMappingOwnership(mapping, supplier);
         return ResponseEntity.ok(mapping);
@@ -69,7 +60,7 @@ public class MappingController {
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody PersistentEntityResource createMapping(PersistentEntityResourceAssembler resourceAssembler,
                                                                 @RequestBody Mapping mapping) throws MethodArgumentNotValidException {
-        Supplier supplier = getAuthenticatedSupplier();
+        Supplier supplier = supplierAuthService.getAuthenticatedSupplier();
         mapping.setProvidedBy(supplier);
         try {
             mapping = mappingRepository.save(mapping);
@@ -113,7 +104,7 @@ public class MappingController {
     }
 
     private File createTempFileFromMultipart(MultipartFile file) throws IOException {
-        File tempFile = File.createTempFile("temp", ".csv");
+        File tempFile = File.createTempFile("temp", ".tsv");
         file.transferTo(tempFile);
         return tempFile;
     }
@@ -121,13 +112,16 @@ public class MappingController {
         private ResponseEntity<String> sendPostRequest(File yamlFile, File csvContent) {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("csvFile", new FileSystemResource(csvContent));
+        System.out.println(csvContent);
         body.add("yamlFile", new FileSystemResource(yamlFile));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-        String serverUrl = "http://104.248.240.80:8081/generateLinkedData";
+        String serverUrl = "https://rdfgenerator.agrospai.udl.cat/generateLinkedData";
+        //String serverUrl = "http://localhost:8081/generateLinkedData";
+
 
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate.postForEntity(serverUrl, requestEntity, String.class);
@@ -135,7 +129,7 @@ public class MappingController {
 
     @DeleteMapping("/mappings/{id}")
     public ResponseEntity<String> deleteMapping(@PathVariable Long id) {
-        Supplier supplier = getAuthenticatedSupplier();
+        Supplier supplier = supplierAuthService.getAuthenticatedSupplier();
         Mapping mapping = mappingRepository.findById(id).orElseThrow(() -> new NotFoundException("Mapping not found."));
 
         if (!mapping.getProvidedBy().getUsername().equals(supplier.getUsername())) {
@@ -149,7 +143,7 @@ public class MappingController {
 
     @PatchMapping("/mappings/{id}")
     public ResponseEntity<String> updateMapping(@PathVariable Long id, @RequestBody Mapping mapping) {
-        Supplier supplier = getAuthenticatedSupplier();
+        Supplier supplier = supplierAuthService.getAuthenticatedSupplier();
         Mapping existingMapping = mappingRepository.findById(id).orElseThrow(() -> new NotFoundException("Mapping not found."));
 
         if (!existingMapping.getProvidedBy().getUsername().equals(supplier.getUsername())) {
@@ -174,7 +168,7 @@ public class MappingController {
 
     @GetMapping("/mappings")
     public @ResponseBody ResponseEntity<List<Mapping>> getAllMappings() {
-        Supplier supplier = getAuthenticatedSupplier();
+        Supplier supplier = supplierAuthService.getAuthenticatedSupplier();
         List<Mapping> mappings = mappingRepository.findByProvidedBy(supplier);
         mappings.addAll(mappingRepository.findByIsAccessibleTrueAndProvidedByNot(supplier));
 
