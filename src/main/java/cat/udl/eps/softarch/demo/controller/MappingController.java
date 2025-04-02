@@ -112,7 +112,6 @@ public class MappingController {
         private ResponseEntity<String> sendPostRequest(File yamlFile, File csvContent) {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("csvFile", new FileSystemResource(csvContent));
-        System.out.println(csvContent);
         body.add("yamlFile", new FileSystemResource(yamlFile));
 
         HttpHeaders headers = new HttpHeaders();
@@ -120,8 +119,6 @@ public class MappingController {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
         String serverUrl = "https://rdfgenerator.agrospai.udl.cat/generateLinkedData";
-        //String serverUrl = "http://localhost:8081/generateLinkedData";
-
 
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate.postForEntity(serverUrl, requestEntity, String.class);
