@@ -8,6 +8,13 @@ This project is part of the **TFG** (Trabajo de Fin de Grado) by **Zihan Chen** 
 
 Chen, Z. (2024). [Asistente para la transformación de datos tabulares a Grafos de Conocimiento](https://repositori.udl.cat/items/20ea8d13-c336-46d2-af4b-cb3379931bcf). Guía de la aplicación.
 
+### English Guide
+
+For the English version of the guide, refer to the following link:
+
+Chen, Z. (2024). [Assistant for the Transformation of
+Tabular Data to Knowledge Graphs](https://github.com/Tab2KGWiz/tab2kgwiz-client/blob/main/docs/guide.pdf). Application Guide.
+
 ## Features
 
 - **Tabular Data to Knowledge Graph Conversion**: Converts tabular data (e.g., CSV, JSON) into RDF.
